@@ -7,6 +7,40 @@
 
 #define SKIP_PREPPING_IF_NOT_NEEDED defined(SUPPORTS_WAVE_INTRINSICS)
 
+
+// Prep velocity so that the velocity due to rotation is clamped more lightly
+float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
+{
+	// Once we have the velocity without camera translation -> velCameraRot = currNDC - prevNDCNoTrans;
+	// Velocity buffer will now contain fullVel = (Object + Camera Rotation + Camera Translation) with Object that might be 0. 
+	// We now do velToClamp = Clamp((fullVel - velCameraRot)) +  velCameraRot;
+
+	float4 worldPos = float4(posInput.positionWS, 1.0);
+	float4 prevPos = worldPos;
+
+	float4 prevClipPos = mul(_PrevVPMatrixNoTranslation, prevPos);
+	float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
+
+	float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
+	float2 positionCS = curClipPos.xy / curClipPos.w;
+
+	float2 velCameraRot = (positionCS - previousPositionCS);
+#if UNITY_UV_STARTS_AT_TOP
+	velCameraRot.y = -velCameraRot.y;
+#endif
+
+	velCameraRot.x = velCameraRot.x * _TextureWidthScaling.y;
+
+	// Encode should be clamp here.
+	velCameraRot *= _MotionBlurIntensity;
+	// We still clamp each component of the velocity so that it doesn't produce artifacts (happening with extremely high motions) 
+	float2 clampVelRot = float2(clamp(velCameraRot.x, -0.15, 0.15), clamp(velCameraRot.y, -0.15, 0.15));
+
+	return ClampVelocity((sampledVelocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
+}
+
+// TODO_FCC: Check if skipping should be done regardless, not just per wave. 
+
 [numthreads(8, 8,1)]
 void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
