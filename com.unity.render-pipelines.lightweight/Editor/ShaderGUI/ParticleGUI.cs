@@ -21,39 +21,43 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public static class Styles
         {
             public static GUIContent colorMode = new GUIContent("Color Mode",
-                "Determines the blending mode between the particle color and the base.");
+                "Controls how the Particle color and the Material color blend together.");
 
             public static GUIContent flipbookMode = new GUIContent("Flip-Book Blending",
-                "Smooths out the transition between two frames of a flip-book animation if used.");
+                "Blends the frames in a flip-book together in a smooth animation.");
 
             public static GUIContent softParticlesEnabled = new GUIContent("Soft Particles",
-                "Fade out particle geometry when it gets close to the surface of objects written into the depth buffer.");
+                "Makes particles fade out when they get close to intersecting with the surface of other geometry in the depth buffer.");
 
             public static GUIContent softParticlesNearFadeDistanceText =
-                new GUIContent("Near fade", "Soft Particles near fade distance.");
+                new GUIContent("Near",
+                    "The distance from the other surface where the particle is completely transparent.");
 
             public static GUIContent softParticlesFarFadeDistanceText =
-                new GUIContent("Far fade", "Soft Particles far fade distance.");
+                new GUIContent("Far",
+                    "The distance from the other surface where the particle is completely opaque.");
 
             public static GUIContent cameraFadingEnabled = new GUIContent("Camera Fading",
-                "Fade out particle geometry when it gets close to the camera.");
+                "Makes particles fade out when they get close to the camera.");
 
             public static GUIContent cameraNearFadeDistanceText =
-                new GUIContent("Near Fade", "Camera near fade distance.");
+                new GUIContent("Near",
+                    "The distance from the camera where the particle is completely transparent.");
 
             public static GUIContent cameraFarFadeDistanceText =
-                new GUIContent("Far Fade", "Camera far fade distance.");
+                new GUIContent("Far", "The distance from the camera where the particle is completely opaque.");
 
             public static GUIContent distortionEnabled = new GUIContent("Distortion",
-                "This makes use of the 'CameraOpaque' texture from teh pipeline to give the ability yo distort the background pixels");
+                "Creates a distortion effect by making particles perform refraction with the objects drawn before them.");
 
             public static GUIContent distortionStrength = new GUIContent("Strength",
-                "How much the normal map affects the warping of the background pixels.");
+                "Controls how much the Particle distorts the background. ");
 
             public static GUIContent distortionBlend = new GUIContent("Blend",
-                "Weighting between the Base color of the particle and the backround color.");
+                "Controls how visible the distortion effect is. A 0, there’s no visible distortion. At 1, only the distortion effect is visible, not the background.");
 
-            public static GUIContent VertexStreams = new GUIContent("Vertex Streams");
+            public static GUIContent VertexStreams = new GUIContent("Vertex Streams",
+                "The vertex streams needed for this Material to function properly.");
 
             public static string streamPositionText = "Position (POSITION.xyz)";
             public static string streamNormalText = "Normal (NORMAL.xyz)";
@@ -167,11 +171,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                         properties.softParticlesEnabled.floatValue = enabled;
                     }
 
-                    if (enabled != 0.0f)
+                    if (enabled >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
-                        materialEditor.ShaderProperty(properties.softParticlesNearFadeDistance, Styles.softParticlesNearFadeDistanceText);
-                        materialEditor.ShaderProperty(properties.softParticlesFarFadeDistance, Styles.softParticlesFarFadeDistanceText);
+                        BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
+                            properties.softParticlesNearFadeDistance,
+                            Styles.softParticlesNearFadeDistanceText,
+                            properties.softParticlesFarFadeDistance,
+                            Styles.softParticlesFarFadeDistanceText);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -189,11 +196,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                         properties.cameraFadingEnabled.floatValue = enabled;
                     }
 
-                    if (enabled != 0.0f)
+                    if (enabled >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
-                        materialEditor.ShaderProperty(properties.cameraNearFadeDistance, Styles.cameraNearFadeDistanceText);
-                        materialEditor.ShaderProperty(properties.cameraFarFadeDistance, Styles.cameraFarFadeDistanceText);
+                        BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Distance"),
+                            properties.cameraNearFadeDistance,
+                            Styles.cameraNearFadeDistanceText,
+                            properties.cameraFarFadeDistance,
+                            Styles.cameraFarFadeDistanceText);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -210,7 +220,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                         properties.distortionEnabled.floatValue = enabled;
                     }
                     
-                    if (enabled != 0.0f)
+                    if (enabled >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
                         materialEditor.ShaderProperty(properties.distortionStrength, Styles.distortionStrength);

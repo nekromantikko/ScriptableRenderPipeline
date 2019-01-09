@@ -18,6 +18,8 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
         _SoftParticlesFarFadeDistance("Soft Particles Far Fade", Float) = 1.0
         _CameraNearFadeDistance("Camera Near Fade", Float) = 1.0
         _CameraFarFadeDistance("Camera Far Fade", Float) = 2.0
+        _DistortionBlend("Distortion Blend", Float) = 0.5
+        _DistortionStrength("Distortion Strength", Float) = 1.0
 
         // -------------------------------------
         // Hidden properties - Generic
@@ -37,6 +39,8 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
         [HideInInspector] _CameraFadingEnabled("__camerafadingenabled", Float) = 0.0
         [HideInInspector] _SoftParticleFadeParams("__softparticlefadeparams", Vector) = (0,0,0,0)
         [HideInInspector] _CameraFadeParams("__camerafadeparams", Vector) = (0,0,0,0)
+        [HideInInspector] _DistortionEnabled("__distortionenabled", Float) = 0.0
+        [HideInInspector] _DistortionStrengthScaled("Distortion Strength Scaled", Float) = 0.1
         
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0

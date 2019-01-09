@@ -232,49 +232,12 @@ namespace UnityEditor.Rendering.LWRP
 
     internal class ParticleUpdaterV1 : MaterialUpgrader
     {
-        public static void UpdateParticleDetails(Material material)
-        {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
-            switch (material.GetFloat("_Mode"))
-            {
-                case 0f: // Opaque
-                    material.SetFloat("_Surface", 0f);
-                    break;
-                case 1f: // AlphaClip
-                    material.SetFloat("_Surface", 0f);
-                    material.SetFloat("_AlphaClip", 1f);
-                    break;
-                case 2f: // Fade
-                    material.SetFloat("_Surface", 1f);
-                    material.SetFloat("_Blend", 0f);
-                    break;
-                case 3f: // Premul
-                    material.SetFloat("_Surface", 1f);
-                    material.SetFloat("_Blend", 1f);
-                    break;
-                case 4f: // Add
-                    material.SetFloat("_Surface", 1f);
-                    material.SetFloat("_Blend", 2f);
-                    break;
-                case 5f: // Subtractive(not-supported)
-                    material.SetFloat("_Surface", 1f);
-                    material.SetFloat("_Blend", 3f);
-                    break;
-                case 6f: // Mul
-                    material.SetFloat("_Surface", 1f);
-                    material.SetFloat("_Blend", 3f);
-                    break;
-            }
-        }
-
         public ParticleUpdaterV1(string shaderName)
         {
             if (shaderName == null)
                 throw new ArgumentNullException("oldShaderName");
 
-            RenameShader(shaderName, shaderName, UpdateParticleDetails);
+            RenameShader(shaderName, shaderName, ParticleUpgrader.UpdateSurfaceBlendModes);
 
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");

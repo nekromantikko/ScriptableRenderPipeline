@@ -370,10 +370,16 @@ namespace UnityEditor.Rendering.LWRP
             RenameFloat("_Mode", "_Surface");
 
             if (oldShaderName.Contains("Unlit"))
+            {
                 RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesUnlit), UpdateUnlit);
+            }
             else
-                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit), UpdateStandardSurface);
-            
+            {
+                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit),
+                    UpdateStandardSurface);
+                RenameFloat("_Glossiness", "_Smoothness");
+            }
+
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_FlipbookMode", "_FlipbookBlending");

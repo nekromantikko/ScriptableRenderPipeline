@@ -39,27 +39,47 @@ namespace UnityEditor
         protected class Styles
         {
             // Catergories
-            public static readonly GUIContent SurfaceOptions = new GUIContent("Surface Options", "Tooltip");
-            public static readonly GUIContent SurfaceInputs = new GUIContent("Surface Inputs", "Tooltip");
-            public static readonly GUIContent AdvancedLabel = new GUIContent("Advanced", "Tooltip");
+            public static readonly GUIContent SurfaceOptions =
+                new GUIContent("Surface Options", "Controls how LWRP renders the Material on a screen.");
+
+            public static readonly GUIContent SurfaceInputs = new GUIContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.");
+
+            public static readonly GUIContent AdvancedLabel = new GUIContent("Advanced",
+                "These settings affect behind-the-scenes rendering and underlying calculations.");
             
-            public static readonly GUIContent surfaceType = new GUIContent("Surface Type", "Tooltip");
-            public static readonly GUIContent blendingMode = new GUIContent("Blending Mode", "Tooltip");
-            public static readonly GUIContent cullingText = new GUIContent("Render Face", "Choose the culling option for this material.");
-            public static readonly GUIContent alphaClipText = new GUIContent("Alpha Clipping", "Enables Alpha Clipping on this material, this uses the alpha value of the Base Map and Base Color, use the threshold to adjust the bias.");
-            public static readonly GUIContent alphaClipThresholdText = new GUIContent("Threshold", "Acts as an offset for the alpha clip");
-            public static readonly GUIContent receiveShadowText = new GUIContent("Receive Shadows", "Enables this material to receive shadows if there is at least one shadow casting light affecting it.");
-            
-            public static readonly GUIContent baseMap = new GUIContent("Base Map", "This Property is used for adding base coloring to the material.\n" +
-                                                                      "If there is no RGB texture map assigned the color property is used, otherwise it is multiplied over the texture map.");
-            public static readonly GUIContent baseColor = new GUIContent("Base Color", "This color property adds base coloring to the material, if a Base Map is assigned this color will be multiplied over it.");
-            public static readonly GUIContent emissionMap = new GUIContent("Emission Map", "This Property is used for adding emissive light to the material.\n" +
-                                                                              "If there is no RGB texture map assigned the color property controls the emission, otherwise it is multiplied over the texture map.");
-            public static readonly GUIContent emissionColor = new GUIContent("Emission Color", "This color property adds emissive to the material, if a Base Map is assigned this color will be multiplied over it.");
-            
-            public static readonly GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
-            public static readonly GUIContent bumpScaleNotSupported = new GUIContent("Bump scale is not supported on mobile platforms");
-            public static readonly GUIContent fixNow = new GUIContent("Fix now");
+            public static readonly GUIContent surfaceType = new GUIContent("Surface Type",
+                "Select a surface type for your texture. Choose between Opaque or Transparent.");
+
+            public static readonly GUIContent blendingMode = new GUIContent("Blending Mode",
+                "Controls how the color of the Transparent surface blends with the Material color in the background.");
+
+            public static readonly GUIContent cullingText = new GUIContent("Render Face",
+                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+
+            public static readonly GUIContent alphaClipText = new GUIContent("Alpha Clipping",
+                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
+
+            public static readonly GUIContent alphaClipThresholdText = new GUIContent("Threshold",
+                "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.");
+
+            public static readonly GUIContent receiveShadowText = new GUIContent("Receive Shadows",
+                "When enabled, other GameObjects can cast shadows onto this GameObject.");
+
+            public static readonly GUIContent baseMap = new GUIContent("Base Map",
+                "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
+
+            public static readonly GUIContent emissionMap = new GUIContent("Emission Map",
+                "Sets a Texture map to use for emission. You can also select a color with the color picker. Colors are multiplied over the Texture.");
+
+            public static readonly GUIContent normalMapText =
+                new GUIContent("Normal Map", "Assigns a tangent-space normal map.");
+
+            public static readonly GUIContent bumpScaleNotSupported =
+                new GUIContent("Bump scale is not supported on mobile platforms");
+
+            public static readonly GUIContent fixNormalNow = new GUIContent("Fix now",
+                "Converts the assigned texture to be a normal map format.");
             
             public static readonly GUIContent queueSlider = new GUIContent("Queue Offset", "This slider controls the offset in the render queue, use this for fine tuning render order.");
         }
@@ -324,7 +344,7 @@ namespace UnityEditor
                 if (bumpMapScale.floatValue != 1 &&
                     UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
                         EditorUserBuildSettings.activeBuildTarget))
-                    if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNow))
+                    if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNormalNow))
                         bumpMapScale.floatValue = 1;
             }
             else
@@ -452,6 +472,27 @@ namespace UnityEditor
         ////////////////////////////////////
         #region HelperFunctions
 
+        public static void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
+            MaterialProperty prop2, GUIContent prop2Label, float labelWidth = 30f)
+        {
+            Rect rect = EditorGUILayout.GetControlRect();
+            EditorGUI.PrefixLabel(rect, title);
+            var indent = EditorGUI.indentLevel;
+            var preLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUI.indentLevel = 0;
+            EditorGUIUtility.labelWidth = labelWidth;
+            Rect propRect1 = new Rect(rect.x + preLabelWidth, rect.y,
+                (rect.width - preLabelWidth) * 0.5f, EditorGUIUtility.singleLineHeight);
+            prop1.floatValue = EditorGUI.FloatField(propRect1, prop1Label, prop1.floatValue);
+            
+            Rect propRect2 = new Rect(propRect1.x + propRect1.width, rect.y,
+                propRect1.width, EditorGUIUtility.singleLineHeight);
+            prop2.floatValue = EditorGUI.FloatField(propRect2, prop2Label, prop2.floatValue);
+
+            EditorGUI.indentLevel = indent;
+            EditorGUIUtility.labelWidth = preLabelWidth;
+        }
+        
         public void DoPopup(GUIContent label, MaterialProperty property, string[] options)
         {
             DoPopup(label, property, options, materialEditor);

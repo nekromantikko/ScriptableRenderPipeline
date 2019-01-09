@@ -21,14 +21,17 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public static class Styles
         {
             public static GUIContent specularMapText =
-                new GUIContent("Specular Map", "Specular (RGB) and Smoothness (A)");
+                new GUIContent("Specular Map", "Sets and configures a Specular map and color for your Material.");
 
-            public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness value");
+            public static GUIContent smoothnessText = new GUIContent("Smoothness",
+                "Controls the spread of highlights and reflections on the surface.");
 
             public static GUIContent smoothnessMapChannelText =
-                new GUIContent("Source", "Smoothness texture and channel");
-            
-            public static GUIContent highlightsText = new GUIContent("Specular Highlights", "Specular Highlights");
+                new GUIContent("Source",
+                    "Specifies where to sample a smoothness map from. By default, uses the alpha channel for your map.");
+
+            public static GUIContent highlightsText = new GUIContent("Specular Highlights",
+                "When enabled, the Material reflects the shine from direct lighting.");
         }
 
         public struct SimpleLitProperties

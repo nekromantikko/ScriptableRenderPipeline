@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             {
                 if (litProperties.workflowMode != null)
                 {
-                    DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, LitGUI.Styles.workflowNames);
+                    litProperties.workflowMode.floatValue = (float)(LitGUI.WorkflowMode)EditorGUILayout.EnumPopup(LitGUI.Styles.workflowModeText, (LitGUI.WorkflowMode)litProperties.workflowMode.floatValue);
                 }
                 base.DrawSurfaceOptions(material);
             }
