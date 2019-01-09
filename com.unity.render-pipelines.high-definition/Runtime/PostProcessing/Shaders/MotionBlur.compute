@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 
 #pragma kernel MotionBlurCS
-//#pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 RWTexture2D<float3> _OutputTexture;
 Texture2D _InputTexture;
@@ -71,19 +71,19 @@ float RandomValue(uint2 pixCoord, uint frameCount)
 #if DITHER_SCHEME == INTERLEAVED_GRADIENT_NOISE
     return InterleavedGradientNoise(pixCoord.xy, 0);
 #elif DITHER_SCHEME == CHECKERBOARD
-    float scale = 0.25f;
+    float scale = 0.25;
     float2 posMod = float2 (pixCoord & 1);
-    return (-scale + 2.0f * scale * posMod.x) * (-1.0f + 2.0f * posMod.y);
+    return (-scale + 2.0 * scale * posMod.x) * (-1.0 + 2.0 * posMod.y);
 #endif
-    return 0.0f;
+    return 0.0;
 }
 
 
 // TODO_FCC: Get better jitter. 
 float2 GetTileUV(uint2 pixCoord, float2 randomVals)
 {
-    randomVals -= 0.5f;
-    randomVals *= 0.5f;
+    randomVals -= 0.5;
+    randomVals *= 0.5;
 
 
 #if !TILE_JITTER
@@ -105,9 +105,9 @@ float2 DepthCompare_Souza(float centralDepth, float sampleDepth, float depthScal
 	float2 z0 = float2(centralDepth, sampleDepth);
 	float2 z1 = float2(sampleDepth, centralDepth);
 
-	return saturate(0.5f + (z0 * depthScale) - (z1 * depthScale));
+	return saturate(0.5 + (z0 * depthScale) - (z1 * depthScale));
 
-	return saturate(0.5f + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
+	return saturate(0.5 + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
 }
 
 // Return foreground and background weights
@@ -116,14 +116,14 @@ float2 DepthCompare(float centralDepth, float sampleDepth, float depthScale)
 #if DEBUG_USE_SOUZA_DEPTH
 	return DepthCompare_Souza(centralDepth, sampleDepth, depthScale);
 #endif
-    return saturate(0.5f + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
+    return saturate(0.5 + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
 }
 
 
 // Spread compare function
 float2 SpreadCompare(float offsetLength, float2 spreadLength, float pixelToSampleScale)
 {
-    return saturate(pixelToSampleScale * spreadLength - max(offsetLength - 1.0f, 0.0f));
+    return saturate(pixelToSampleScale * spreadLength - max(offsetLength - 1.0, 0.0));
 }
 
 float SampleWeight(float centralDepth, float sampleDepth, float offsetLength, float centralSpreadLength, float sampleSpreadLength, float pixelToSampleScale, float depthScale)
@@ -133,7 +133,7 @@ float SampleWeight(float centralDepth, float sampleDepth, float offsetLength, fl
 #if DEBUG_WEIGHT == CONSTANT
     return 1;
 #elif DEBUG_WEIGHT == ONLY_SPREAD
-    return spread;
+    return spread.y;
 #elif DEBUG_WEIGHT == ONLY_DEPTH_COMPARE
     return depthWeights.y ;
 #elif DEBUG_WEIGHT == CUSTOM
@@ -160,7 +160,7 @@ float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount
 {
     float2 currDir = dirSign * dir;
 
-    float  offsetLength = (sampleNumber + 0.5f) + (dirSign * (randomVal - 0.5));
+    float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
     float2 sampleUV = centralUV + (offsetLength*invSampleCount) * currDir;
 
     float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
@@ -172,7 +172,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
 {
     float2 currDir = dirSign * dir;
 
-    float  offsetLength = (sampleNumber + 0.5f) + (dirSign * (randomVal - 0.5));
+    float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
     float2 sampleUV = centralUV + (offsetLength*invSampleCount) * currDir;
 
     float3 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
@@ -203,7 +203,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 	float2 randomVals = float2(RandomValue(dispatchThreadId.xy, 0), RandomValue(dispatchThreadId.xy, 1));
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy, randomVals);
-    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f).xyz;
+    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0).xyz;
 
     // Get velocity in pixels extents.
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
@@ -231,18 +231,18 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #if DEBUG_VIEW == TILE_VIS
     if (earlyOut)
     {
-        debugColor = float3(0, 1, 0);
+        debugColor = float3(0.0, 1.0, 0.0);
     }
     else if (fastPath)
     {
-        debugColor = float3(1, 1, 0);
+        debugColor = float3(1.0, 1.0, 0.0);
     }
     else
     {
-        debugColor = float3(1, 0, 0);
+        debugColor = float3(1.0, 0.0, 0.0);
     }
 
-    _OutputTexture[dispatchThreadId.xy] = 0.25f * centralColor + 0.75f * debugColor.xyz;
+    _OutputTexture[dispatchThreadId.xy] = 0.25 * centralColor + 0.75 * debugColor.xyz;
 
 #else
 
@@ -260,12 +260,12 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 		uint stepCount = actualSampleCount / 2u;
 
 
-        float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
+        float2 centerSampleUV = (0.5 + dispatchThreadId.xy) * _ScreenSize.zw;
 
 		float randomVal = randomVals.x;
-        float2 dir = 0.5f * maxVel;
+        float2 dir = 0.5 * maxVel;
 
-        float3 colorAccumulation = 0.0f;
+        float3 colorAccumulation = 0.0;
 
         if (fastPath)
         {
@@ -285,16 +285,16 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             // Slow path.
             float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
 
-            float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
+            float pixelToSampleScale = _SampleCount * 0.5 * maxVelLength;
             float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
             float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
 #if GUERTIN2014_DOUBLE_DIR
-            float2 centralDir = centralVelocityLen < 1 ? dir : centralTapVelocity * 0.5f;
+            float2 centralDir = centralVelocityLen < 1 ? dir : centralTapVelocity * 0.5;
 #endif
 
             float  centralDepth = velocityAndDepth.z;
 
-            float4 accumulation = 0.0f;
+            float4 accumulation = 0.0;
             for (uint i = 0; i < stepCount; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
@@ -321,31 +321,26 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             }
             accumulation *= invSampleCount;
 #if DEBUG_SLOW_PATH != NO_DEBUG 
-			accumulation *= 2.0f;
+			accumulation *= 2.0;
 #endif
 
-            colorAccumulation = accumulation.rgb + (1.0f - accumulation.w) * centralColor;
+            colorAccumulation = accumulation.rgb + (1.0 - accumulation.w) * centralColor;
 
 #if DEBUG_VIEW == WEIGHT_VIS
-            colorAccumulation = accumulation.rgb;
-			colorAccumulation.b = accumulation.w;
-#endif
-
-#if DEBUG_VIEW == WEIGHT_VIS
+			colorAccumulation = accumulation.w;
 #endif
         }
 
 
 #if DEBUG_VIEW == MAX_VELOCITY
-        colorAccumulation = float3(maxVel, 0.0f);
+        colorAccumulation = float3(maxVel, 0.0);
         float maxVelLenPix = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
         colorAccumulation = maxVelLenPix;
 #endif
 
 #if DEBUG_VIEW == SAMPLE_COUNT
-		colorAccumulation = colorAccumulation * 0.25f + 0.75f * lerp(float3(0.0f, 1.0f, 0.0f), float3(1.0, 0.0, 0.0), actualSampleCount / _SampleCount);
+		colorAccumulation = colorAccumulation * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), actualSampleCount / _SampleCount);
 #endif
-
 
         _OutputTexture[dispatchThreadId.xy] = colorAccumulation;
     }

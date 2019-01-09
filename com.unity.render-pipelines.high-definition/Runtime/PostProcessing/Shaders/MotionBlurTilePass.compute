@@ -139,9 +139,9 @@ void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_Gro
     // We still compute the min velocity in a 1-ring neighbourhood
 
     // Stored explicitly to leverage Min3. TODO_FCC: Check if this hamper perf.
-    float minVels[9] = {0.0f,   0.0f,  0.0f,
-                       0.0f,    0.0f,  0.0f,
-                       0.0f,    0.0f,  0.0f};
+    float minVels[9] = {0.0,   0.0,  0.0,
+                        0.0,   0.0,  0.0,
+						0.0,   0.0,  0.0};
 
     int i=0; 
 

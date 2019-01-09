@@ -5,7 +5,7 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 
-#define SKIP_PREPPING_IF_NOT_NEEDED defined(SUPPORTS_WAVE_INTRINSICS) && 1
+#define SKIP_PREPPING_IF_NOT_NEEDED defined(SUPPORTS_WAVE_INTRINSICS)
 
 [numthreads(8, 8,1)]
 void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)

@@ -51,9 +51,9 @@ CBUFFER_END
 float2 EncodeVelocity(float2 velocity)
 {
     float velLength = length(velocity);
-    if (velLength < 0.0001f)
+    if (velLength < 0.0001)
     {
-        return 0.0f;
+        return 0.0;
     }
     else
     {
@@ -88,7 +88,7 @@ float VelocityLengthInPixelsFromEncoded(float2 velocity)
 
 float2 DecodeVelocityFromPacked(float2 velocity)
 {
-    float theta = velocity.y * (2 * PI) - PI;
+    float theta = velocity.y * (2.0 * PI) - PI;
     return  (float2(sin(theta), cos(theta)) * velocity.x).yx;
 }
 
@@ -122,7 +122,7 @@ float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
 
     // Encode should be clamp here.
 
-    float2 clampVelRot = float2(clamp(velCameraRot.x, -0.15f, 0.15), clamp(velCameraRot.y, -0.15f, 0.15f));
+    float2 clampVelRot = float2(clamp(velCameraRot.x, -0.15, 0.15), clamp(velCameraRot.y, -0.15, 0.15));
 
     return ClampVelocity((sampledVelocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
 }
