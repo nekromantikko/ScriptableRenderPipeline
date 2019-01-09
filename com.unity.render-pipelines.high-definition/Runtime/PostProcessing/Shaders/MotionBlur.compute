@@ -58,7 +58,6 @@ Texture2D _InputTexture;
 #define MIRROR_WEIGHTS 1        // TODO_FCC: To test with noisy background.
 #define TILE_JITTER 1
 #define GUERTIN2014_DOUBLE_DIR 1
-#define OPTIMIZE_SAMPLE_COUNT 1
 
 // ---------------------------------------------
 // Misc utils
@@ -254,13 +253,10 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-#if OPTIMIZE_SAMPLE_COUNT
 		uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1), uint(_SampleCount));
-		actualSampleCount = max(actualSampleCount, 2);
-#else 
-		uint actualSampleCount = _SampleCount;
-#endif
-        const float invSampleCount = 1.0f / actualSampleCount;
+		actualSampleCount = max(actualSampleCount, 2u);
+
+		const float invSampleCount = rcp(actualSampleCount);
 		uint stepCount = actualSampleCount / 2u;
 
 
