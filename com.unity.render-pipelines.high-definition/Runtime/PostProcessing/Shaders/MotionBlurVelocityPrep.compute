@@ -61,26 +61,31 @@ float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
 void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     float3 velAndDepth = 0.0f;
-    float2 velocity;
-    DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
+    float4 velocityBufferSample = LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy);
+	// if we have a value > 1.0f, it means we have selected the "no motion option", hence we force velocity 0. 
+	bool forceNoMotion = PixelSetAsNoMotionVectors(velocityBufferSample);
+
+	float2 velocity;
+	DecodeVelocity(velocityBufferSample, velocity);
     float depth = SampleCameraDepth(dispatchThreadId);
 
+    if ( !forceNoMotion
 #if SKIP_PREPPING_IF_NOT_NEEDED
-    if (WaveActiveAnyTrue(dot(velocity, velocity) * _ScreenMagnitudeSq > _MinVelThresholdSq))
-    {
+		|| WaveActiveAnyTrue(dot(velocity, velocity) * _ScreenMagnitudeSq > _MinVelThresholdSq)
 #endif
+		)
+    {
+		
         PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
         float2 finalVelocity = ComputeVelocity(posInput, velocity);
         velAndDepth.xy = EncodeVelocity(finalVelocity);
         velAndDepth.z = posInput.linearDepth;
-#if SKIP_PREPPING_IF_NOT_NEEDED
-    }
+	}
     else
     {
         velAndDepth.z = LinearEyeDepth(depth, _ZBufferParams);
     }
-#endif
 
     // Compute linear depth
     _VelocityAndDepth[dispatchThreadId.xy] = velAndDepth;

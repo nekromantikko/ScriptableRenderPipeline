@@ -225,7 +225,7 @@ void Frag(  PackedVaryingsToPS packedInput
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
 
     if (forceNoMotion)
-        outVelocity = float4(0.0, 0.0, 0.0, 0.0);
+        outVelocity = float4(2.0, 0.0, 0.0, 0.0);
 
 // Normal Buffer Processing
 #ifdef WRITE_NORMAL_BUFFER
