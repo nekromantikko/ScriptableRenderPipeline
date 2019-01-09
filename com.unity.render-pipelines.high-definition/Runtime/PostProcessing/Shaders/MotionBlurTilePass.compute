@@ -5,7 +5,7 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS) && PACKING && 1
+#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
 
 uint PackVel(float2 packedVel)
 {

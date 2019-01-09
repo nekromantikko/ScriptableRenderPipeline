@@ -44,15 +44,12 @@ CBUFFER_END
 // --------------------------------------
 // Encoding/Decoding
 // --------------------------------------
-#define PACKING 1
 
 // We use polar coordinates. This has the advantage of storing the length separately and we'll need the length several times.
 // This returns a couple { Length, Angle }
 // TODO_FCC: Profile! We should be fine since this is going to be in a bw bound pass, but worth checking as atan2 costs a lot. 
 float2 EncodeVelocity(float2 velocity)
 {
-
-#if PACKING
     float velLength = length(velocity);
     if (velLength < 0.0001f)
     {
@@ -63,16 +60,6 @@ float2 EncodeVelocity(float2 velocity)
         float theta = atan2(velocity.y, velocity.x)  * (0.5 / PI) + 0.5;
         return float2(velLength, theta);
     }
-#else
-
-    float len = length(velocity);
-
-    if(len > 0)
-    {
-        return min(len, _MotionBlurMaxVelocity / _ScreenMagnitude) * normalize(velocity);
-    }
-    else return 0;
-#endif
 }
 
 float2 ClampVelocity(float2 velocity)
@@ -91,30 +78,18 @@ float2 ClampVelocity(float2 velocity)
 
 float VelocityLengthFromEncoded(float2 velocity)
 {
-#if PACKING
     return  velocity.x;
-#else
-    return length(velocity);
-#endif
 }
 
 float VelocityLengthInPixelsFromEncoded(float2 velocity)
 {
-#if PACKING
     return  velocity.x * _ScreenMagnitude;
-#else
-    return length(velocity * _ScreenSize.xy);
-#endif
 }
 
 float2 DecodeVelocityFromPacked(float2 velocity)
 {
-#if PACKING
     float theta = velocity.y * (2 * PI) - PI;
     return  (float2(sin(theta), cos(theta)) * velocity.x).yx;
-#else
-    return velocity;
-#endif
 }
 
 
