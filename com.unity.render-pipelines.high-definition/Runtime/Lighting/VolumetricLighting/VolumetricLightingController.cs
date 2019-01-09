@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class VolumetricLightingController : VolumeComponent
     {
-        [Tooltip("Distance (in Unity units) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
+        [Tooltip("Sets the distance (in Unity units) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
         public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         [FormerlySerializedAs("depthDistributionUniformity")]
