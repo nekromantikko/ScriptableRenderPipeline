@@ -3,8 +3,8 @@
 #pragma kernel MotionBlurCS
 #pragma enable_d3d11_debug_symbols
 
-RWTexture2D<float3> _OutputTexture;
-Texture2D _InputTexture;
+RW_TEXTURE2D(float3, _OutputTexture);
+TEXTURE2D(_InputTexture);
 
 #define SOFT_Z_EXTENT 0.01
 
@@ -13,8 +13,6 @@ Texture2D _InputTexture;
 //	- When background is moving in directions very different than foreground (REPRO: set FPS to 30, put camera low, move it forward with dancing guys in scene. Notice artifacts when dancer crosses the horizon.)
 //	- When max velocity is above the tile size, in the rotating+moving camera case with a more noisy background, if you pause, you can see the tiles... yuck. Pretty much the same issue here. 
 
-// Various TODOs TODO_FCC:
-//	- Apply intensity scale to camera rotation component as well.
 
 // ---------------------------------------------
 // Debug
