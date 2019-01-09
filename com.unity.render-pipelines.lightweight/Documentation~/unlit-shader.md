@@ -20,7 +20,7 @@ The Inspector window for this Shader contains these elements:
 - __[Advanced](#advanced)__
 
 
-![Inspector for the Unlit Shader](Images/Inspectors/Shaders/StdUnlit.png)
+![Inspector for the Unlit Shader](Images/Inspectors/Shaders/Unlit.png)
 
 ### Surface Options 
 

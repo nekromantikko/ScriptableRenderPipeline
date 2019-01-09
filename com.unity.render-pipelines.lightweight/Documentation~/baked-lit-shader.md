@@ -19,7 +19,7 @@ The Inspector window for this Shader contains these elements:
 - __[Surface Inputs](#surface-inputs)__
 - __[Advanced](#advanced)__
 
-![Inspector for the Baked Lit Shader](/Images/Inspectors/Shaders/BakedLit.png)
+![Inspector for the Baked Lit Shader](Images/Inspectors/Shaders/BakedLit.png)
 
 ### Surface Options 
 

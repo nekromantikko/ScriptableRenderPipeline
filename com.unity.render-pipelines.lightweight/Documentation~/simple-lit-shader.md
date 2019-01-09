@@ -16,10 +16,11 @@ To select and use this Shader:
 
 The Inspector window for this Shader contains these elements: 
 
-- __Surface Options__
-- __Surface Inputs__
-- __Advanced__
+- __[Surface Options](#surface-options)__
+- __[Surface Inputs](#surface-inputs)__
+- __[Advanced](#advanced)__
 
+![Inspector for the Simple Lit Shader](Images/Inspectors/Shaders/SimpleLit.png)
 
 ### Surface Options 
 
