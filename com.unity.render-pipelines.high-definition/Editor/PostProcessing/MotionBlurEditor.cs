@@ -2,11 +2,10 @@ using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 
- // All params need renaming...
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    [VolumeComponentEditor(typeof(MotionBlur))]
+    //[VolumeComponentEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Intensity;
@@ -15,9 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_MaxVelocityInPixels;
 
         SerializedDataParameter m_MinVelInPixels;
-        SerializedDataParameter m_TileMinMaxVelRatioForHighQuality;
 
-        public override bool hasAdvancedMode => true;
+        SerializedDataParameter m_CameraRotClamp;
 
         public override void OnEnable()
         {
@@ -27,25 +25,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_MinVelInPixels = Unpack(o.Find(x => x.minVelInPixels));
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maxVelocity));
-            m_TileMinMaxVelRatioForHighQuality = Unpack(o.Find(x => x.tileMinMaxVelRatioForHighQuality));
+            m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
         }
 
         public override void OnInspectorGUI()
         {
+            PropertyField(m_Intensity);
+            PropertyField(m_SampleCount);
 
-            bool advanced = isInAdvancedMode;
+            PropertyField(m_MaxVelocityInPixels);
+            PropertyField(m_MinVelInPixels);
 
-            EditorGUILayout.HelpBox("Motion Blur is still heavily WIP and not ready for use in production. To test it regardless, parameters are all under advanced.", MessageType.Warning);
-
-            if (advanced)
-            {
-                PropertyField(m_Intensity);
-                PropertyField(m_SampleCount);
-                PropertyField(m_MaxVelocityInPixels);
-
-                PropertyField(m_MinVelInPixels);
-                PropertyField(m_TileMinMaxVelRatioForHighQuality);
-            }
+            PropertyField(m_CameraRotClamp);
         }
     }
 }

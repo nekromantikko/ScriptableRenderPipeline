@@ -39,66 +39,27 @@ CBUFFER_END
 #define _MotionBlurIntensity		_MotionBlurParams1.x
 #define _MotionBlurMaxVelocity		_MotionBlurParams1.y
 #define _MinMaxVelRatioForSlowPath	_MotionBlurParams1.z
+#define _CameraRotationClampNDC		_MotionBlurParams1.w
 
 
 // --------------------------------------
-// Encoding/Decoding
+// Functions that work on encoded representation
 // --------------------------------------
-
-// We use polar coordinates. This has the advantage of storing the length separately and we'll need the length several times.
-// This returns a couple { Length, Angle }
-// TODO_FCC: Profile! We should be fine since this is going to be in a bw bound pass, but worth checking as atan2 costs a lot. 
-float2 EncodeVelocity(float2 velocity)
-{
-    float velLength = length(velocity);
-    if (velLength < 0.0001)
-    {
-        return 0.0;
-    }
-    else
-    {
-        float theta = atan2(velocity.y, velocity.x)  * (0.5 / PI) + 0.5;
-        return float2(velLength, theta);
-    }
-}
-
-float2 ClampVelocity(float2 velocity)
-{
-
-    float len = length(velocity);
-    if (len > 0)
-    {
-        return min(len, _MotionBlurMaxVelocity / _ScreenMagnitude) * (velocity * rcp(len));
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-float VelocityLengthFromEncoded(float2 velocity)
-{
-    return  velocity.x;
-}
 
 float VelocityLengthInPixelsFromEncoded(float2 velocity)
 {
-    return  velocity.x * _ScreenMagnitude;
+	return  velocity.x * _ScreenMagnitude;
 }
 
 float2 DecodeVelocityFromPacked(float2 velocity)
 {
-    float theta = velocity.y * (2.0 * PI) - PI;
-    return  (float2(sin(theta), cos(theta)) * velocity.x).yx;
+	float theta = velocity.y * (2.0 * PI) - PI;
+	return  (float2(sin(theta), cos(theta)) * velocity.x).yx;
 }
 
-// --------------------------------------
-// Misc functions that work on encoded representation
-// --------------------------------------
-
-float2 MinVel(float2 v, float2 w)
+float VelocityLengthFromEncoded(float2 velocity)
 {
-    return VelocityLengthFromEncoded(v) < VelocityLengthFromEncoded(w) ? v : w;
+	return  velocity.x;
 }
 
 float2 MaxVel(float2 v, float2 w)

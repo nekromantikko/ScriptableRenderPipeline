@@ -8,13 +8,31 @@
 #define SKIP_PREPPING_IF_NOT_NEEDED defined(SUPPORTS_WAVE_INTRINSICS)
 
 
+
+// We use polar coordinates. This has the advantage of storing the length separately and we'll need the length several times.
+float2 EncodeVelocity(float2 velocity)
+{
+	float velLength = length(velocity);
+	if (velLength < 0.0001)
+	{
+		return 0.0;
+	}
+	else
+	{
+		float theta = atan2(velocity.y, velocity.x)  * (0.5 / PI) + 0.5;
+		return float2(velLength, theta);
+	}
+}
+
+float2 ClampVelocity(float2 velocity)
+{
+	float len = length(velocity);
+	return (len > 0.0) ? min(len, _MotionBlurMaxVelocity) * (velocity * rcp(len)) : 0.0;
+}
+
 // Prep velocity so that the velocity due to rotation is clamped more lightly
 float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
 {
-	// Once we have the velocity without camera translation -> velCameraRot = currNDC - prevNDCNoTrans;
-	// Velocity buffer will now contain fullVel = (Object + Camera Rotation + Camera Translation) with Object that might be 0. 
-	// We now do velToClamp = Clamp((fullVel - velCameraRot)) +  velCameraRot;
-
 	float4 worldPos = float4(posInput.positionWS, 1.0);
 	float4 prevPos = worldPos;
 
@@ -24,17 +42,15 @@ float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
 	float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
 	float2 positionCS = curClipPos.xy / curClipPos.w;
 
-	float2 velCameraRot = (positionCS - previousPositionCS);
+	float2 velCameraRot = (positionCS - previousPositionCS) * _MotionBlurIntensity;
 #if UNITY_UV_STARTS_AT_TOP
 	velCameraRot.y = -velCameraRot.y;
 #endif
 
 	velCameraRot.x = velCameraRot.x * _TextureWidthScaling.y;
 
-	// Encode should be clamp here.
-	velCameraRot *= _MotionBlurIntensity;
-	// We still clamp each component of the velocity so that it doesn't produce artifacts (happening with extremely high motions) 
-	float2 clampVelRot = float2(clamp(velCameraRot.x, -0.15, 0.15), clamp(velCameraRot.y, -0.15, 0.15));
+	float velCameraRotLength = length(velCameraRot);
+	float2 clampVelRot = min(_CameraRotationClampNDC, velCameraRotLength) * (velCameraRot * rcp(velCameraRotLength));
 
 	return ClampVelocity((sampledVelocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
 }
