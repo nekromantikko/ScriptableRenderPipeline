@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum MipLevel { Original, L1, L2, L3, L4, L5, L6, Count }
 
         RenderPipelineResources m_Resources;
+        RenderPipelineSettings m_Settings;
 
         // The arrays below are reused between frames to reduce GC allocation.
         readonly float[] m_SampleThickness =
@@ -84,8 +85,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly MaterialPropertyBlock m_ResolvePropertyBlock;
         readonly Material m_ResolveMaterial;
 
+#if ENABLE_RAYTRACING
+        public HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+        readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
+#endif
+
         public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
         {
+            m_Settings = hdAsset.renderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
 
             if (!hdAsset.renderPipelineSettings.supportSSAO)
@@ -139,30 +146,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // All of these are pre-allocated to 1x1 and will be automatically scaled properly by
             // the internal RTHandle system
-            Alloc(out m_LinearDepthTex, MipLevel.Original, fmtFP16, true);
+            Alloc(out m_LinearDepthTex, MipLevel.Original, fmtFP16, true, "AOLinearDepth");
 
-            Alloc(out m_LowDepth1Tex, MipLevel.L1, fmtFP32, true);
-            Alloc(out m_LowDepth2Tex, MipLevel.L2, fmtFP32, true);
-            Alloc(out m_LowDepth3Tex, MipLevel.L3, fmtFP32, true);
-            Alloc(out m_LowDepth4Tex, MipLevel.L4, fmtFP32, true);
+            Alloc(out m_LowDepth1Tex, MipLevel.L1, fmtFP32, true, "AOLowDepth1");
+            Alloc(out m_LowDepth2Tex, MipLevel.L2, fmtFP32, true, "AOLowDepth2");
+            Alloc(out m_LowDepth3Tex, MipLevel.L3, fmtFP32, true, "AOLowDepth3");
+            Alloc(out m_LowDepth4Tex, MipLevel.L4, fmtFP32, true, "AOLowDepth4");
 
-            AllocArray(out m_TiledDepth1Tex, MipLevel.L3, fmtFP16, true);
-            AllocArray(out m_TiledDepth2Tex, MipLevel.L4, fmtFP16, true);
-            AllocArray(out m_TiledDepth3Tex, MipLevel.L5, fmtFP16, true);
-            AllocArray(out m_TiledDepth4Tex, MipLevel.L6, fmtFP16, true);
+            AllocArray(out m_TiledDepth1Tex, MipLevel.L3, fmtFP16, true, "AOTiledDepth1");
+            AllocArray(out m_TiledDepth2Tex, MipLevel.L4, fmtFP16, true, "AOTiledDepth2");
+            AllocArray(out m_TiledDepth3Tex, MipLevel.L5, fmtFP16, true, "AOTiledDepth3");
+            AllocArray(out m_TiledDepth4Tex, MipLevel.L6, fmtFP16, true, "AOTiledDepth4");
 
-            Alloc(out m_Occlusion1Tex, MipLevel.L1, fmtFX8, true);
-            Alloc(out m_Occlusion2Tex, MipLevel.L2, fmtFX8, true);
-            Alloc(out m_Occlusion3Tex, MipLevel.L3, fmtFX8, true);
-            Alloc(out m_Occlusion4Tex, MipLevel.L4, fmtFX8, true);
+            Alloc(out m_Occlusion1Tex, MipLevel.L1, fmtFX8, true, "AOOcclusion1");
+            Alloc(out m_Occlusion2Tex, MipLevel.L2, fmtFX8, true, "AOOcclusion2");
+            Alloc(out m_Occlusion3Tex, MipLevel.L3, fmtFX8, true, "AOOcclusion3");
+            Alloc(out m_Occlusion4Tex, MipLevel.L4, fmtFX8, true, "AOOcclusion4");
 
-            Alloc(out m_Combined1Tex, MipLevel.L1, fmtFX8, true);
-            Alloc(out m_Combined2Tex, MipLevel.L2, fmtFX8, true);
-            Alloc(out m_Combined3Tex, MipLevel.L3, fmtFX8, true);
+            Alloc(out m_Combined1Tex, MipLevel.L1, fmtFX8, true, "AOCombined1");
+            Alloc(out m_Combined2Tex, MipLevel.L2, fmtFX8, true, "AOCombined2");
+            Alloc(out m_Combined3Tex, MipLevel.L3, fmtFX8, true, "AOCombined3");
         }
 
         public void Cleanup()
         {
+#if ENABLE_RAYTRACING
+            m_RaytracingAmbientOcclusion.Release();
+#endif
+
             CoreUtils.Destroy(m_ResolveMaterial);
 
             RTHandles.Release(m_AmbientOcclusionTex);
@@ -190,12 +201,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_Combined3Tex);
         }
 
+#if ENABLE_RAYTRACING
+        public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        {
+            m_RayTracingManager = raytracingManager;
+            m_RaytracingAmbientOcclusion.Init(m_Resources, m_Settings, m_RayTracingManager, sharedRTManager);
+        }
+#endif
+
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.enableSSAO && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager)
+        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
         {
-            Dispatch(cmd, camera, sharedRTManager);
-            PostDispatchWork(cmd, camera, sharedRTManager);
+            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+
+#if ENABLE_RAYTRACING
+            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
+            if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
+            {
+
+                if (!camera.frameSettings.enableSSAO) // Use filler texture if SRP settings have disabled SSAO
+                {
+                    // No AO applied - neutral is black, see the comment in the shaders
+                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
+                    return;
+                }
+                else
+                {
+                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
+                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
+                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
+
+                    // TODO: All the push-debug stuff should be centralized somewhere
+                    (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
+                }
+            }
+            else
+#endif
+            {
+                Dispatch(cmd, camera, sharedRTManager);
+                PostDispatchWork(cmd, camera, sharedRTManager);
+            }
         }
 
         public void Dispatch(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager)
@@ -288,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
         }
 
-        void Alloc(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav)
+        void Alloc(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav, string name)
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
@@ -299,11 +346,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 sRGB: false,
-                filterMode: FilterMode.Point
+                filterMode: FilterMode.Point,
+                name: name
             );
         }
 
-        void AllocArray(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav)
+        void AllocArray(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav, string name)
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
@@ -315,7 +363,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 sRGB: false,
-                filterMode: FilterMode.Point
+                filterMode: FilterMode.Point,
+                name: name
             );
         }
 

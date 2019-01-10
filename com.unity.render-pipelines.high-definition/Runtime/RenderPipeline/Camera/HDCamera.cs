@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   screenParams;
         public int       volumeLayerMask;
         public Transform volumeAnchor;
+        public Rect      viewport;
 
         public bool colorPyramidHistoryIsValid = false;
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
@@ -117,6 +118,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
+
         // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
         public Matrix4x4 prevViewProjMatrixNoCameraTrans;
@@ -181,6 +184,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
         public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
+
+        public bool invertFaceCulling
+            => m_AdditionalCameraData != null ? m_AdditionalCameraData.invertFaceCulling : false;
+
+        public LayerMask probeLayerMask
+            => m_AdditionalCameraData != null
+            ? m_AdditionalCameraData.probeLayerMask
+            : (LayerMask)~0;
 
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
@@ -367,7 +378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isFirstFrame = false;
             }
 
-            // In stereo, this corresponds to the center eye position	
+            // In stereo, this corresponds to the center eye position
             worldSpaceCameraPos = camera.transform.position;
 
             taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
@@ -503,6 +514,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
+            viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, actualWidth, actualHeight);
+
             if (vlSys != null)
             {
                 vlSys.UpdatePerCameraData(this);
@@ -622,7 +635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 float vertical = camera.orthographicSize;
                 float horizontal = vertical * camera.aspect;
-                
+
                 var offset = taaJitter;
                 offset.x *= horizontal / (0.5f * camera.pixelWidth);
                 offset.y *= vertical / (0.5f * camera.pixelHeight);
