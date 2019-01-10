@@ -101,9 +101,6 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
 }
 
 
-
-// TODO_FCC: Do dispatch indirect for the fast pass ? That would prevent us from jittering, but worth testing out if it is worth the loss of quality (can be an option)
-
 #ifdef GEN_PASS
 
 [numthreads(TILE_SIZE, TILE_SIZE,1)]
@@ -126,62 +123,9 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
 #elif NEIGHBOURHOOD_PASS 
 
-#define GUERTING2014 0
-
-
 [numthreads(8, 8, 1)]
 void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-
-#if GUERTING2014 
-    // We follow Guertin et al. 2014 here, when computing dominant direction we ignore velocities that
-    // are completely off the path of the central one. 
-    // We still compute the min velocity in a 1-ring neighbourhood
-
-    // Stored explicitly to leverage Min3. TODO_FCC: Check if this hamper perf.
-    float minVels[9] = {0.0,   0.0,  0.0,
-                        0.0,   0.0,  0.0,
-						0.0,   0.0,  0.0};
-
-    int i=0; 
-
-    float  maxVelLengthSq = -1;
-    float2 maxVel;
-    for(int y=-1; y<=1; ++y)
-    {
-        for(int x=-1; x<=1; ++x)
-        {
-            int2 offset = int2(x, y);
-            float3 minMaxSample = _TileMinMaxVel[id.xy + offset].xyz;
-            float2 currVel = minMaxSample.xy;
-            float currVelSq = dot(currVel, currVel);
-
-            if(maxVelLengthSq < currVelSq)
-            {
-                int2 relativeSigns = sign(currVel * offset);
-                int  relativeDist = abs(relativeSigns.x + relativeSigns.y);
-
-                // Sample velocity needs to either match or be complete opposite signs relative
-                // to their position in the 1-ring (i.e. relative to offset). 
-                int manhattanDist = abs(offset.x) + abs(offset.y);
-                if(manhattanDist == relativeDist)
-                {
-                    maxVel = currVel;
-                    maxVelLengthSq = currVelSq;
-                }
-            }
-
-            minVels[i++] = minMaxSample.z;
-        }
-    }
-
-
-    float minVel0 = Min3(minVels[0], minVels[1], minVels[2]);
-    float minVel1 = Min3(minVels[3], minVels[4], minVels[5]);
-    float minVel2 = Min3(minVels[6], minVels[7], minVels[8]);
-
-    _TileMaxNeighbourhood[id.xy] = float3(maxVel, Min3(minVel0, minVel1, minVel2)) ;
-#else
 	int2 id = dispatchID.xy;
 	int2 maxCoords = int2(_TileTargetSize.xy - 1);
 
@@ -210,7 +154,6 @@ void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_Gro
 
 
     _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
-#endif
 }
 
 #endif

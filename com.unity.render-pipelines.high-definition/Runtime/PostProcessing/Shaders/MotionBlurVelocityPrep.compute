@@ -55,8 +55,6 @@ float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
 	return ClampVelocity((sampledVelocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
 }
 
-// TODO_FCC: Check if skipping should be done regardless, not just per wave. 
-
 [numthreads(8, 8,1)]
 void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {

@@ -6,12 +6,7 @@
 RW_TEXTURE2D(float3, _OutputTexture);
 TEXTURE2D(_InputTexture);
 
-#define SOFT_Z_EXTENT 0.1	// TODO_FCC: Expose?
-
-
-// Known Bugs TODO_FCC:
-//	- When background is moving in directions very different than foreground (REPRO: set FPS to 30, put camera low, move it forward with dancing guys in scene. Notice artifacts when dancer crosses the horizon.)
-//	- When max velocity is above the tile size, in the rotating+moving camera case with a more noisy background, if you pause, you can see the tiles... yuck. Pretty much the same issue here. 
+#define SOFT_Z_EXTENT 0.1	// TODO: Expose?
 
 
 // ---------------------------------------------
@@ -34,7 +29,6 @@ TEXTURE2D(_InputTexture);
 #define CONSTANT 1
 #define ONLY_SPREAD 2
 #define ONLY_DEPTH_COMPARE 3
-#define CUSTOM 4
 
 #define DEBUG_WEIGHT NO_DEBUG
 
@@ -45,15 +39,9 @@ TEXTURE2D(_InputTexture);
 
 #define DEBUG_EXECUTION NORMAL
 
-// ------------Debug Slow Path ------------------
-#define NO_DEBUG 0
-#define DEBUG_ONLY_FORWARD 1
-#define DEBUG_ONLY_BACKWARD 2
-
-#define DEBUG_SLOW_PATH NO_DEBUG
 
 // ------------Options------------------
-#define MIRROR_WEIGHTS 1        // TODO_FCC: To test with noisy background.
+#define MIRROR_WEIGHTS 1
 #define TILE_JITTER 1
 #define GUERTIN2014_DOUBLE_DIR 1
 
@@ -76,8 +64,6 @@ float RandomValue(uint2 pixCoord, uint frameCount)
     return 0.0;
 }
 
-
-// TODO_FCC: Get better jitter. 
 float2 GetTileUV(uint2 pixCoord, float2 randomVals)
 {
     randomVals -= 0.5;
@@ -97,30 +83,12 @@ float2 GetTileUV(uint2 pixCoord, float2 randomVals)
 // Weight functions
 // ---------------------------------------------
 
-#define DEBUG_USE_SOUZA_DEPTH 0
-
-// Return foreground and background weights
-float2 DepthCompare_Souza(float centralDepth, float sampleDepth, float depthScale)
-{
-	float2 z0 = float2(centralDepth, sampleDepth);
-	float2 z1 = float2(sampleDepth, centralDepth);
-
-	return saturate(0.5 + (z0 * depthScale) - (z1 * depthScale));
-
-	return saturate(0.5 + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
-}
-
 // Return foreground and background weights
 float2 DepthCompare(float centralDepth, float sampleDepth, float depthScale)
 {
-#if DEBUG_USE_SOUZA_DEPTH
-	return DepthCompare_Souza(centralDepth, sampleDepth, depthScale);
-#endif
     return saturate(0.5 + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
 }
 
-
-// Spread compare function
 float2 SpreadCompare(float offsetLength, float2 spreadLength, float pixelToSampleScale)
 {
     return saturate(pixelToSampleScale * spreadLength - max(offsetLength - 1.0, 0.0));
@@ -136,10 +104,6 @@ float SampleWeight(float centralDepth, float sampleDepth, float offsetLength, fl
     return spread.y;
 #elif DEBUG_WEIGHT == ONLY_DEPTH_COMPARE
     return depthWeights.y ;
-#elif DEBUG_WEIGHT == CUSTOM
-    depthWeights = DepthCompare(centralDepth, sampleDepth, depthScale);
-    spread = SpreadCompare(offsetLength, float2(centralSpreadLength, sampleSpreadLength), pixelToSampleScale);
-    return depthWeights.x;
 #else
     return dot(depthWeights, spread);
 #endif
@@ -211,13 +175,11 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float minVelLengthInPixels =  tileMaxNeighbourhood.z * _ScreenMagnitude;
 
     bool earlyOut = maxVelLength <= _MinVelThreshold;
+	bool fastPath = minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength);
 
 #if defined(SUPPORTS_WAVE_INTRINSICS)
     earlyOut = WaveActiveAllTrue(earlyOut);
-    bool fastPath = WaveActiveAllTrue(minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength));
-#else
-    // TODO: force it scalar with interlocked add or something like that (it is not always due to the jittering)
-    bool fastPath = minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength);
+    fastPath = WaveActiveAllTrue(fastPath);
 #endif
 
 #if DEBUG_EXECUTION == ONLY_SLOW_PATH
@@ -246,14 +208,14 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #else
 
-    float3 outVal = 1;
+    float3 outVal = 1.0f;
     if (earlyOut)
     {
         _OutputTexture[dispatchThreadId.xy] = centralColor;
     }
     else
     {
-		uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1), uint(_SampleCount));
+		uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1u), uint(_SampleCount));
 		actualSampleCount = max(actualSampleCount, 2u);
 
 		const float invSampleCount = rcp(actualSampleCount);
@@ -298,21 +260,13 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             for (uint i = 0; i < stepCount; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
-                dir = i % 2u == 0 ? centralDir : dir;
+                dir = (i & 1u) == 0 ? centralDir : dir;
 #endif
-				// TODO_FCC: When done with debug, no need to initialize the following.
-				float fw_Depth = 0;
-				float bw_Depth = 0;
-				float fw_VelLength = 0;
-				float bw_VelLength = 0;
-				float4 fw_Sample = 0;
-				float4 bw_Sample = 0;
-#if DEBUG_SLOW_PATH != DEBUG_ONLY_BACKWARD
-                 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, -1, fw_Depth, fw_VelLength);
-#endif
-#if DEBUG_SLOW_PATH != DEBUG_ONLY_FORWARD
-                 bw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, 1, bw_Depth, bw_VelLength);
-#endif
+				float fw_Depth, bw_Depth;
+				float fw_VelLength, bw_VelLength;
+				float4 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, -1, fw_Depth, fw_VelLength);
+				float4 bw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, 1, bw_Depth, bw_VelLength);
+
                 // Mirror weights
 #if MIRROR_WEIGHTS
                 MirrorWeights(fw_Depth, bw_Depth, fw_VelLength, bw_VelLength, fw_Sample.w, bw_Sample.w);
@@ -320,9 +274,6 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
                 accumulation += float4(fw_Sample.w * fw_Sample.rgb, fw_Sample.w) + float4(bw_Sample.w * bw_Sample.rgb, bw_Sample.w);
             }
             accumulation *= invSampleCount;
-#if DEBUG_SLOW_PATH != NO_DEBUG 
-			accumulation *= 2.0;
-#endif
 
             colorAccumulation = accumulation.rgb + (1.0 - accumulation.w) * centralColor;
 
@@ -339,7 +290,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 #if DEBUG_VIEW == SAMPLE_COUNT
-		colorAccumulation = colorAccumulation * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), actualSampleCount / _SampleCount);
+		colorAccumulation = colorAccumulation * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), float(actualSampleCount) / _SampleCount);
 #endif
 
         _OutputTexture[dispatchThreadId.xy] = colorAccumulation;
