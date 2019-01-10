@@ -158,7 +158,8 @@ VFXParameterUI.node.exposed > #node-border > #title > #pill > #exposed-icon
     padding-left:4;
 }
 
-#super-collapse-button >  #icon {
+#super-collapse-button >#icon {
+    background-size: 2;
     width:12;
     height:12;
     align-self:center;

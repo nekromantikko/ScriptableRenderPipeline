@@ -69,9 +69,8 @@ namespace UnityEngine.Rendering.LWRP
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
 
-                var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
-                var fullPath = Path.GetFullPath(relativePath);
-                var shaderFiles = Directory.GetFiles(Path.Combine(fullPath, "ShaderLibrary")).Select(x => Path.Combine(relativePath, x.Substring(fullPath.Length)));
+                var shaderFiles = Directory.GetFiles(
+                    Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/ShaderLibrary"));
                 sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
@@ -84,9 +83,11 @@ namespace UnityEngine.Rendering.LWRP
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
+                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
+
                 var materialTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
+                materialTags.GetTags(tagsBuilder);
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);

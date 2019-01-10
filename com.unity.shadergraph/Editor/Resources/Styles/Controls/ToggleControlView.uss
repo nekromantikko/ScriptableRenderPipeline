@@ -1,18 +1,21 @@
 ToggleControlView > #togglePanel {
-    padding-left: 8;
     flex-direction: row;
     flex-grow: 1;
 }
 
 ToggleControlView > #togglePanel > Label {
-    width: 100;
+    flex-grow: 1;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     margin-left: 8;
     margin-right: 8;
-    text-alignment : middle-left;
+    margin-top: 4;
+    margin-bottom: 4;
 }
 
 .unity-toggle{
-    
     align-self: center;
 }
 

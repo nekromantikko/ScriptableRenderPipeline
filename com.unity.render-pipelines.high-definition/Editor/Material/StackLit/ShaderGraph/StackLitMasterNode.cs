@@ -15,7 +15,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    [Title("Master", "HDRP/StackLit")]
+    [Title("Master", "StackLit")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {

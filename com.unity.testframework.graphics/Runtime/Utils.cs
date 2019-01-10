@@ -15,11 +15,9 @@ namespace UnityEditor.TestTools.Graphics
                     return RuntimePlatform.Android;
                 case BuildTarget.iOS:
                     return RuntimePlatform.IPhonePlayer;
-#if !UNITY_2019_2_OR_NEWER
                 case BuildTarget.StandaloneLinux:
-                case BuildTarget.StandaloneLinuxUniversal:
-#endif
                 case BuildTarget.StandaloneLinux64:
+                case BuildTarget.StandaloneLinuxUniversal:
                     return RuntimePlatform.LinuxPlayer;
                 case BuildTarget.StandaloneOSX:
                     return RuntimePlatform.OSXPlayer;
@@ -57,11 +55,7 @@ namespace UnityEditor.TestTools.Graphics
                     return BuildTarget.iOS;
                 case RuntimePlatform.LinuxEditor:
                 case RuntimePlatform.LinuxPlayer:
-#if UNITY_2019_2_OR_NEWER
-                    return BuildTarget.StandaloneLinux64;
-#else
                     return BuildTarget.StandaloneLinuxUniversal;
-#endif
                 case RuntimePlatform.OSXEditor:
                 case RuntimePlatform.OSXPlayer:
                     return BuildTarget.StandaloneOSX;

@@ -152,7 +152,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
-                Repaint();
             }
             catch (Exception e)
             {

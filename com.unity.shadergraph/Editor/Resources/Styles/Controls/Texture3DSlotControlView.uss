@@ -14,9 +14,7 @@ Texture3DSlotControlView {
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
-    text-alignment: middle-left;
 }
-
-.unity-object-field__object{
+.unity-object-field__object {
     overflow:hidden;
 }

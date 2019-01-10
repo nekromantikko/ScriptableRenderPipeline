@@ -97,9 +97,8 @@ namespace UnityEditor.Rendering.LWRP
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
 
-                var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
-                var fullPath = Path.GetFullPath(relativePath);
-                var shaderFiles = Directory.GetFiles(Path.Combine(fullPath, "ShaderLibrary")).Select(x => Path.Combine(relativePath, x.Substring(fullPath.Length)));
+                var shaderFiles = Directory.GetFiles(
+                    Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/ShaderLibrary"));
                 sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
@@ -112,9 +111,11 @@ namespace UnityEditor.Rendering.LWRP
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
+                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
+
                 var materialTags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
+                materialTags.GetTags(tagsBuilder);
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(pbrMasterNode.surfaceType, pbrMasterNode.alphaMode, pbrMasterNode.twoSided.isOn);
@@ -144,7 +145,7 @@ namespace UnityEditor.Rendering.LWRP
 
         static string GetTemplatePath(string templateName)
         {
-            var basePath = "Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph/";
+            var basePath = Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph");
             string templatePath = Path.Combine(basePath, templateName);
 
             if (File.Exists(templatePath))

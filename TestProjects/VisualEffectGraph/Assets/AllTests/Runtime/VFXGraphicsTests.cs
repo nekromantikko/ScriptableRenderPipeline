@@ -50,7 +50,10 @@ namespace UnityEngine.VFX.Test
 
         static readonly string[] UnstableMetalTests =
         {
-            // Currently known unstable results, could be Metal or more generic HLSLcc issue across multiple graphics targets
+            // Unstable results, could be Metal or more generic HLSLcc issue across multiple graphics targets
+            "06_LineOutput",
+            "08_Shadows",
+            "10_SortPriority",
         };
 
         [UnityTest, Category("VisualEffect")]

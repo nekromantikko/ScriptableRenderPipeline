@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.LWRP
             if (shader.name.Contains("Debug"))
                 return true;
 
-            if (shader.name.Contains("HDRP"))
+            if (shader.name.Contains("HDRenderPipeline"))
                 return true;
 
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&
