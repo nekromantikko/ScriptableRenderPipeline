@@ -6,7 +6,7 @@
 RW_TEXTURE2D(float3, _OutputTexture);
 TEXTURE2D(_InputTexture);
 
-#define SOFT_Z_EXTENT 0.01
+#define SOFT_Z_EXTENT 0.1	// TODO_FCC: Expose?
 
 
 // Known Bugs TODO_FCC:
@@ -87,7 +87,7 @@ float2 GetTileUV(uint2 pixCoord, float2 randomVals)
 #if !TILE_JITTER
     randomVals = 0;
 #endif
-    return ((pixCoord / TILE_SIZE) + randomVals) * _TileTargetSize.zw;
+    return (((0.5f+pixCoord) / TILE_SIZE) + randomVals) * _TileTargetSize.zw;
 }
 
 
