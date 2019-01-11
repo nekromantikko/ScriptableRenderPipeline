@@ -240,7 +240,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             EditorGUILayout.Space();
             // Display list of streams required to make this shader work
-            bool useNormalMap;
+            bool useNormalMap = false;
             bool useFlipbookBlending = (material.GetFloat("_FlipbookBlending") > 0.0f);
             if(material.HasProperty("_BumpMap"))
                 useNormalMap = material.GetTexture("_BumpMap");
