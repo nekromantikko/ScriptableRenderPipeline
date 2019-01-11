@@ -19,16 +19,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent k_SupportedFeatureHeaderContent = CoreEditorUtils.GetContent("Render Pipeline Supported Features");
 
-        static readonly GUIContent k_SupportShadowMaskContent = CoreEditorUtils.GetContent("Shadow Mask|Enable memory (Extra Gbuffer in deferred) and shader variant for shadow mask.");
-        static readonly GUIContent k_SupportSSRContent = CoreEditorUtils.GetContent("SSR|Enable memory use by SSR effect.");
-        static readonly GUIContent k_SupportSSAOContent = CoreEditorUtils.GetContent("SSAO|Enable memory use by SSAO effect.");
-        static readonly GUIContent k_SupportedSSSContent = CoreEditorUtils.GetContent("Subsurface Scattering");
-        static readonly GUIContent k_SSSSampleCountContent = CoreEditorUtils.GetContent("High quality |This allows for better SSS quality. Warning: high performance cost, do not enable on consoles.");
-        static readonly GUIContent k_SupportVolumetricContent = CoreEditorUtils.GetContent("Volumetrics|Enable memory and shader variant for volumetric.");
-        static readonly GUIContent k_VolumetricResolutionContent = CoreEditorUtils.GetContent("High quality |Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles.");
-        static readonly GUIContent k_SupportLightLayerContent = CoreEditorUtils.GetContent("LightLayers|Enable light layers. In deferred this imply an extra render target in memory and extra cost.");
-        static readonly GUIContent k_SupportLitShaderModeContent = CoreEditorUtils.GetContent("Lit Shader Mode|Remove all the memory and shader variant of GBuffer of non used mode. The renderer cannot be switch to non selected path anymore.");
-        static readonly GUIContent k_MSAASampleCountContent = CoreEditorUtils.GetContent("MSAA Quality|This feature only work when only ForwardOnly LitShaderMode is supported. Allow to select the quality of MSAA.");
+        static readonly GUIContent k_SupportShadowMaskContent = CoreEditorUtils.GetContent("Shadow Mask|When enabled, HDRP allocates memory for processing shadow masks. This allows you to use shadow masks in your Unity Project.");
+        static readonly GUIContent k_SupportSSRContent = CoreEditorUtils.GetContent("SSR|When enabled, HDRP allocates memory for processing screen space reflection (SSR). This allows you to use SSR in your Unity Project.");
+        static readonly GUIContent k_SupportSSAOContent = CoreEditorUtils.GetContent("SSAO|When enabled, HDRP allocates memory for processing screen space ambient occlusion (SSAO). This allows you to use SSAO in your Unity Project.");
+        static readonly GUIContent k_SupportedSSSContent = CoreEditorUtils.GetContent("Subsurface Scattering|When enabled, HDRP allocates memory for processing subsurface scattering (SSS). This allows you to use SSS in your Unity Project.");
+        static readonly GUIContent k_SSSSampleCountContent = CoreEditorUtils.GetContent("High quality |When enabled, HDRP processes higher quality subsurface scattering effects. Warning: There is a high performance cost, do not enable on consoles.");
+        static readonly GUIContent k_SupportVolumetricContent = CoreEditorUtils.GetContent("Volumetrics|When enabled, HDRP allocates memory and shader variants for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
+        static readonly GUIContent k_VolumetricResolutionContent = CoreEditorUtils.GetContent("High quality |When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
+        static readonly GUIContent k_SupportLightLayerContent = CoreEditorUtils.GetContent("LightLayers|When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+        static readonly GUIContent k_SupportLitShaderModeContent = CoreEditorUtils.GetContent("Lit Shader Mode|Specifies the rendering modes HDRP supports for Lit Shaders. HDRP removes all allocated memory and shader variants for modes you do not specify.");
+        static readonly GUIContent k_MSAASampleCountContent = CoreEditorUtils.GetContent("MSAA Quality|Specifies the maximum quality HDRP supports for MSAA. Set Lit Shader Mode to Forward Only or Both to use this feature.");
         static readonly GUIContent k_SupportDecalContent = CoreEditorUtils.GetContent("Decals|Enable memory and variant for decals buffer and cluster decals.");
         static readonly GUIContent k_SupportMotionVectorContent = CoreEditorUtils.GetContent("Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR.");
         static readonly GUIContent k_SupportRuntimeDebugDisplayContent = CoreEditorUtils.GetContent("Runtime debug display|Remove all debug display shader variant only in the player. Allow faster build.");

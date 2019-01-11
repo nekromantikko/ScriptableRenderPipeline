@@ -71,26 +71,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "|Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
             public readonly GUIContent layersText = new GUIContent("Surface Inputs");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
-            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-            public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
-            public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Multiply: Multiplies vertex color with the mask.\nAdditive: Remaps vertex color values between [-1, 1] and adds them to the mask (neutral value is 0.5 vertex color).");
+            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Specifies the Layer Mask for this Material");
+            public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.");
+            public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Specifies the method HDRP uses to color vertices.\nMultiply: Multiplies vertex color with the mask.\nAdditive: Remaps vertex color values between [-1, 1] and adds them to the mask (neutral value is 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Controls the number of layers for this Material.");
             public readonly GUIContent objectScaleAffectTileText = new GUIContent("Lock layers 0123 tiling with object Scale", "When enabled, tiling of each layer is affected by the Transform's Scale.");
             public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Lock layers  123 tiling with object Scale", "When enabled, tiling of each influenced layer (except the main layer) is affected by the Transform's Scale.");
 
-            public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Controls the tiling factor of the Planar/Trilinear mapping");
-            public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
+            public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Sets the tiling factor of the Planar/Trilinear mapping.");
+            public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Specifies the UV Mapping mode of the layer.");
 
             public readonly GUIContent layeringOptionText = new GUIContent("Layering Options");
 
-            public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Blends the layer with the underlying layer based on the height.");
-            public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode.");
+            public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "When enabled, HDRP blends the layer with the underlying layer based on the height.");
+            public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switches between regular layers mode and base/layers mode.");
 
-            public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity map as Density map", "Use the opacity map (alpha channel of Base Color) as the Density map.");
-            public readonly GUIContent inheritBaseNormalText = new GUIContent("Normal influence", "Inherit the normal from the base layer.");
-            public readonly GUIContent inheritBaseHeightText = new GUIContent("Heightmap influence", "Inherit the height from the base layer.");
-            public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Inherit the Base Color from the base layer.");
-            public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size, in world units, of the smooth transition between layers.");
+            public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity map as Density map", "When enabled, HDRP uses the opacity map (alpha channel of Base Color) as the Density map.");
+            public readonly GUIContent inheritBaseNormalText = new GUIContent("Normal influence", "Controls the strength of the normals inherited from the base layer.");
+            public readonly GUIContent inheritBaseHeightText = new GUIContent("Heightmap influence", "Controls the strength of the height map inherited from the base layer.");
+            public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Controls the strength of the Base Color inherited from the base layer.");
+            public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Sets the size, in world units, of the smooth transition between layers.");
 
             public readonly GUIContent perPixelDisplacementLayersWarning = new GUIContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping.");
 
