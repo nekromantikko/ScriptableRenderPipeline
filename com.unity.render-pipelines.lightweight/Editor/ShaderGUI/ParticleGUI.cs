@@ -236,13 +236,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             }
         }
         
-        public static void DoVertexStreamsArea(Material material, List<ParticleSystemRenderer> renderers)
+        public static void DoVertexStreamsArea(Material material, List<ParticleSystemRenderer> renderers, bool useLighting = false)
         {
             EditorGUILayout.Space();
             // Display list of streams required to make this shader work
-            bool useLighting = true;//(material.GetFloat("_LightingEnabled") > 0.0f);
+            bool useNormalMap;
             bool useFlipbookBlending = (material.GetFloat("_FlipbookBlending") > 0.0f);
-            bool useTangents = material.GetTexture("_BumpMap") && useLighting;
+            if(material.HasProperty("_BumpMap"))
+                useNormalMap = material.GetTexture("_BumpMap");
 
             // Build the list of expected vertex streams
             List<ParticleSystemVertexStream> streams = new List<ParticleSystemVertexStream>();
@@ -251,10 +252,15 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             streams.Add(ParticleSystemVertexStream.Position);
             streamList.Add(Styles.streamPositionText);
 
-            if (useLighting)
+            if (useLighting || useNormalMap)
             {
                 streams.Add(ParticleSystemVertexStream.Normal);
                 streamList.Add(Styles.streamNormalText);
+                if (useNormalMap)
+                {
+                    streams.Add(ParticleSystemVertexStream.Tangent);
+                    streamList.Add(Styles.streamTangentText);
+                }
             }
 
             streams.Add(ParticleSystemVertexStream.Color);
@@ -269,13 +275,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 streams.Add(ParticleSystemVertexStream.AnimBlend);
                 streamList.Add(Styles.streamAnimBlendText);
             }
-
-            if (useTangents)
-            {
-                streams.Add(ParticleSystemVertexStream.Tangent);
-                streamList.Add(Styles.streamTangentText);
-            }
-
+            
             vertexStreamList = new ReorderableList(streamList, typeof(string), false, true, false, false);
             
             vertexStreamList.drawHeaderCallback = (Rect rect) => {
