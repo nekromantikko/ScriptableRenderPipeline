@@ -20,8 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
         //static readonly GUIContent tileAndClusterContent = CoreEditorUtils.GetContent("Enable Tile And Cluster");
-        static readonly GUIContent fptlForForwardOpaqueContent = CoreEditorUtils.GetContent("FPTL For Forward Opaque");
-        static readonly GUIContent bigTilePrepassContent = CoreEditorUtils.GetContent("Big Tile Prepass");
+        static readonly GUIContent fptlForForwardOpaqueContent = CoreEditorUtils.GetContent("FPTL For Forward Opaque|When enabled, HDRP uses Fine Pruned Tiled Lighting for Forward rendered opaque GameObjects.");
+        static readonly GUIContent bigTilePrepassContent = CoreEditorUtils.GetContent("Big Tile Prepass|When enabled, HDRP processes a Big Tile Prepass for Cameras using these Frame Settings.");
         static readonly GUIContent computeLightEvaluationContent = CoreEditorUtils.GetContent("Compute Light Evaluation");
         static readonly GUIContent computeLightVariantsContent = CoreEditorUtils.GetContent("Compute Light Variants");
         static readonly GUIContent computeMaterialVariantsContent = CoreEditorUtils.GetContent("Compute Material Variants");
