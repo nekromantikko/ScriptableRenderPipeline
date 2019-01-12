@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
             else
                 cameraData.msaaSamples = 1;
+            QualitySettings.antiAliasing = cameraData.msaaSamples;
 
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
