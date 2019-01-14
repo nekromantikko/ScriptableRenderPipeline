@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent shutterSpeedContent = CoreEditorUtils.GetContent("Shutter Speed (1 / x)");
         static readonly GUIContent isoContent = CoreEditorUtils.GetContent("ISO");
 
-        static readonly GUIContent viewportContent = CoreEditorUtils.GetContent("Viewport Rect|Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values 0 – 1).");
+        static readonly GUIContent viewportContent = CoreEditorUtils.GetContent("Viewport Rect|Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values in the range of [0, 1]).");
         static readonly GUIContent depthContent = CoreEditorUtils.GetContent("Depth");
 #if ENABLE_MULTIPLE_DISPLAYS
         static readonly GUIContent targetDisplayContent = CoreEditorUtils.GetContent("Target Display");
