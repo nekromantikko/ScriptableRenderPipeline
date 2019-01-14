@@ -1210,15 +1210,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // -----------------------------------------------------------------------------
 
-            const int tileSize = 32; 
+            const bool scattering = true ;
+
+            const int tileSize = scattering ? 16 : 32; 
             int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / tileSize);
             int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / tileSize);
             Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
             Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
-            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat tileFormat = RenderTextureFormat.RGB111110Float;
+            if (scattering)
+            {
+                tileFormat = RenderTextureFormat.RInt;
+            }
+            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, tileFormat);
+
             RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+
+            // Debug really..
+            RTHandle tileSpreadUncoded = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+
 
             float screenMagnitude = (new Vector2(camera.actualWidth, camera.actualHeight).magnitude);
             Vector4 motionBlurParams0 = new Vector4(
@@ -1289,6 +1301,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
+            // Visualize spreaded vel (TODO_FCC: Remove, this is debuggy)
+            if(scattering)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("TileSpreadUnpack");
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxSpread, tileSpreadUncoded);
+                groupSizeX = 8;
+                groupSizeY = 8;
+                threadGroupX = (tileTexWidth + (groupSizeX - 1)) / groupSizeX;
+                threadGroupY = (tileTexHeight + (groupSizeY - 1)) / groupSizeY;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+
+            // -----------------------------------------------------------------------------
             // Blur kernel
             cs = m_Resources.shaders.motionBlurCS;
             kernel = cs.FindKernel("MotionBlurCS");
@@ -1296,6 +1325,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
@@ -1313,6 +1343,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Pool.Recycle(minMaxTileVel);
             m_Pool.Recycle(maxTileNeigbourhood);
             m_Pool.Recycle(preppedVelocity);
+            m_Pool.Recycle(tileSpreadUncoded);
         }
 
         #endregion

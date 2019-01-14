@@ -2,6 +2,7 @@
 
 #pragma kernel TileGenPass          GEN_PASS
 #pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
+#pragma kernel TileSpreadUnpack     SPREAD_UNPACK
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -116,13 +117,127 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
     if (threadIdx == 0)
     {
+#if SPREAD_VEL
+        _TileMinMaxVel[groupID.xy] =  PackTileNeighbourhoodData(float3(maxVel.x, maxVel.y, minVelLength));
+#else
         _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLength);
+#endif
     }
 
 }
 
 #elif NEIGHBOURHOOD_PASS 
 
+#if SPREAD_VEL
+
+
+// Line drawing algorithm. 
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    // Sample the velocity at this tile.
+    uint packedTileInfo = _TileMinMaxVel[id];
+    float3 VelData = UnpackTileDataNeighb(packedTileInfo);
+
+    // Covert to a per pixel velocity.
+    float maxVelInTiles = 0.5f * ceil(VelocityLengthInPixelsFromEncoded(VelData.xy) / TILE_SIZE);
+    float2 maxVelVectorInTiles = DecodeVelocityFromPacked(VelData.xy) * _TileTargetSize.xy;
+
+    // Determine start and end point of the line. Forward
+    int2 startPoint = id.xy;
+    int2 endPoint = int2(ceil(startPoint.x + maxVelVectorInTiles.x), ceil(startPoint.y + maxVelVectorInTiles.y));
+
+
+    int2 dXY = int2(abs(startPoint.x - endPoint.x), abs(startPoint.y - endPoint.y));
+    int2 sXY = int2(startPoint.x < endPoint.x ? 1 : -1, startPoint.y < endPoint.y ? 1 : -1);
+    int err = (dXY.x > dXY.y ? dXY.x : -dXY.y) / 2;
+
+    int x = startPoint.x;
+    int y = startPoint.y;
+    do
+    {
+        if (x == endPoint.x && y == endPoint.y)
+        {
+            break;
+        }
+
+        int e2 = err;
+
+        if (e2 > -dXY.x)
+        {
+            err -= dXY.y;
+            x += sXY.x;
+        }
+
+        if (e2 < dXY.y)
+        {
+            err += dXY.x;
+            y += sXY.y;
+        }
+
+        InterlockedMax(_TileMinMaxVel[int2(x,y)], uint(packedTileInfo));
+    } while (true);
+
+    // Determine start and end point of the line. Backward
+    endPoint = int2(ceil(startPoint.x - maxVelVectorInTiles.x), ceil(startPoint.y - maxVelVectorInTiles.y));
+
+     dXY = int2(abs(startPoint.x - endPoint.x), abs(startPoint.y - endPoint.y));
+    sXY = int2(startPoint.x < endPoint.x ? 1 : -1, startPoint.y < endPoint.y ? 1 : -1);
+    err = (dXY.x > dXY.y ? dXY.x : -dXY.y) / 2;
+
+    x = startPoint.x;
+    y = startPoint.y;
+    do
+    {
+        if (x == endPoint.x && y == endPoint.y)
+        {
+            break;
+        }
+
+        int e2 = err;
+
+        if (e2 > -dXY.x)
+        {
+            err -= dXY.y;
+            x += sXY.x;
+        }
+
+        if (e2 < dXY.y)
+        {
+            err += dXY.x;
+            y += sXY.y;
+        }
+
+        InterlockedMax(_TileMinMaxVel[int2(x, y)], uint(packedTileInfo));
+    } while (true);
+
+
+    //int spreadSteps = int(maxVelInTiles) + (frac(maxVelInTiles) > 0.5);// ? maxVelInTiles + 1 : maxVelInTiles;// ceil(maxVelInTiles)
+    //spreadSteps = min(spreadSteps, 16);
+
+    //float2 delta = maxVelVectorInTiles / spreadSteps;
+
+    ////int fwSteps = 0;
+    ////while (fwSteps < spreadSteps)
+    ////{
+
+    ////}
+
+    //for (int i = 0; i < spreadSteps; ++i)
+    //{
+    //    int2 nextTileLoc = id + delta * i * maxVelVectorInTiles;
+    //    int2 prevTileLoc = id - delta * i * maxVelVectorInTiles;
+    //    InterlockedMax(_TileMinMaxVel[nextTileLoc], uint(packedTileInfo));
+    //    InterlockedMax(_TileMinMaxVel[prevTileLoc], uint(packedTileInfo));
+    //}
+}
+
+
+#else
 [numthreads(8, 8, 1)]
 void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
@@ -157,3 +272,20 @@ void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_Gro
 }
 
 #endif
+
+
+#endif
+
+
+
+#if SPREAD_UNPACK
+RW_TEXTURE2D(float3, _TileMaxSpread);
+
+[numthreads(8, 8, 1)]
+void TileSpreadUnpack(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    int2 id = dispatchID.xy;
+    _TileMaxSpread[id.xy] = UnpackTileDataNeighb(_TileMinMaxVel[id.xy]);
+}
+#endif
+

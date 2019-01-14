@@ -1,8 +1,16 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
+
+#define SPREAD_VEL 1
+
+#if SPREAD_VEL
+#define TILE_SIZE                   16u
+#else
 #define TILE_SIZE                   32u
+#endif
 #define WAVE_SIZE                   64u
 
 #ifdef VELOCITY_PREPPING 
@@ -12,12 +20,24 @@ TEXTURE2D(_VelocityAndDepth);
 #endif
 
 #ifdef GEN_PASS
-RW_TEXTURE2D(float3, _TileMinMaxVel);
+
+RW_TEXTURE2D(
+#if SPREAD_VEL
+    uint
 #else
+    float3
+#endif
+    , _TileMinMaxVel);
+#else
+
+#if SPREAD_VEL && !NEIGHBOURHOOD_PASS
 TEXTURE2D(_TileMinMaxVel);
 #endif
 
+#endif
+
 #if NEIGHBOURHOOD_PASS
+RW_TEXTURE2D(uint, _TileMinMaxVel);
 RW_TEXTURE2D(float3, _TileMaxNeighbourhood);
 #else
 TEXTURE2D(_TileMaxNeighbourhood);
@@ -65,4 +85,21 @@ float VelocityLengthFromEncoded(float2 velocity)
 float2 MaxVel(float2 v, float2 w)
 {
     return (VelocityLengthFromEncoded(v) < VelocityLengthFromEncoded(w)) ? w : v;
+}
+
+// Max is in most representative bits
+// TODO: How to deal with min? 
+float3 UnpackTileDataNeighb(uint data)
+{
+    return float3(data.xxx);
+    float2 outVel;
+    outVel.x = f16tof32(data >> 16);
+    outVel.y = f16tof32(data);
+    return float3(outVel, 0.0f);
+}
+
+uint PackTileNeighbourhoodData(float3 data)
+{
+    return asuint(data.x);
+    return f32tof16(data.y) | f32tof16(data.x) << 16;
 }

@@ -37,7 +37,7 @@ TEXTURE2D(_InputTexture);
 #define ONLY_SLOW_PATH 1
 #define ONLY_FAST_PATH 2
 
-#define DEBUG_EXECUTION NORMAL
+#define DEBUG_EXECUTION ONLY_SLOW_PATH
 
 
 // ------------Options------------------
@@ -169,7 +169,12 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 randomVals = float2(RandomValue(dispatchThreadId.xy, 0), RandomValue(dispatchThreadId.xy, 1));
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy, randomVals);
+
+#if SPREAD_VEL
+    float3 tileMaxNeighbourhood = UnpackTileDataNeighb(SAMPLE_TEXTURE2D_LOD(_TileMinMaxVel, s_point_clamp_sampler, tileUV, 0.0).x).xyz;
+#else
     float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0).xyz;
+#endif
 
     // Get velocity in pixels extents.
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);

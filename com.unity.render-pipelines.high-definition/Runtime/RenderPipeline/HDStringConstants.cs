@@ -589,6 +589,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VelocityAndDepth               = Shader.PropertyToID("_VelocityAndDepth");
         public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
         public static readonly int _TileMaxNeighbourhood           = Shader.PropertyToID("_TileMaxNeighbourhood");
+        public static readonly int _TileMaxSpread                  = Shader.PropertyToID("_TileMaxSpread");
         public static readonly int _TileTargetSize                 = Shader.PropertyToID("_TileTargetSize");
         public static readonly int _MotionBlurSampleCount          = Shader.PropertyToID("_SampleCount");
         public static readonly int _MotionBlurParams               = Shader.PropertyToID("_MotionBlurParams0");

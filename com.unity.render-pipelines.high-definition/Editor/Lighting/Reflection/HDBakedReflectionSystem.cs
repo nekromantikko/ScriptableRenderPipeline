@@ -298,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Resize(ref m_StateHashes, m_HDProbeBakedStates.Length);
                 for (int i = 0; i < m_HDProbeBakedStates.Length; ++i)
                     m_StateHashes[i] = m_HDProbeBakedStates[i].probeBakedHash;
-                stateHashes = m_StateHashes;
+             //   stateHashes = m_StateHashes;
             }
 
             handle.ExitStage((int)BakingStages.ReflectionProbes);

@@ -466,7 +466,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 overridesEnvironmentLighting = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false
+          //      editableMaterialRenderQueue = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
