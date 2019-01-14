@@ -1271,9 +1271,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cullingResults = renderRequest.cullingResults.cullingResults;
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var target = renderRequest.target;
-#if ENABLE_RAYTRACING
-            m_AreaShadowsRendered = false;
-#endif
 
             m_DbufferManager.enableDecals = false;
             if (hdCamera.frameSettings.enableDecals)
