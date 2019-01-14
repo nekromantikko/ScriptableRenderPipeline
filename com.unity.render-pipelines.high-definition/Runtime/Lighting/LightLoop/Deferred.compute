@@ -90,10 +90,6 @@
 
 CBUFFER_START(UnityDeferredCompute)
     uint g_TileListOffset;
-    #ifdef ENABLE_RAYTRACING
-    // Uniform variables that defines if we shall be using the shadow area texture or not
-    int _RaytracedAreaShadow;
-    #endif
 CBUFFER_END
 
 #ifdef DEBUG_DISPLAY

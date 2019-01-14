@@ -79,17 +79,6 @@ Shader "Hidden/HDRP/Deferred"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
-            //-------------------------------------------------------------------------------------
-            // variable declaration
-            //-------------------------------------------------------------------------------------
-
-            //#define ENABLE_RAYTRACING
-            #ifdef ENABLE_RAYTRACING
-            CBUFFER_START(UnityDeferred)
-                // Uniform variables that defines if we shall be using the shadow area texture or not
-                int _RaytracedAreaShadow;
-            CBUFFER_END
-            #endif
 
             struct Attributes
             {
