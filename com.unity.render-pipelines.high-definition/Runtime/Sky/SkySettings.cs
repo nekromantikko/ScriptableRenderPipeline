@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
         [Tooltip("Informative helper that displays the relative intensity (in Lux) for the current HDR texture set in HDRI Sky.")]
         public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
-        [Tooltip("Sets the absolute intensity (in Lux) of the current HDR texture set in HDRI Sky. Functions as a Lux intensity multiplier for the sky")]
+        [Tooltip("Sets the absolute intensity (in Lux) of the current HDR texture set in HDRI Sky. Functions as a Lux intensity multiplier for the sky.")]
         public FloatParameter           desiredLuxValue = new FloatParameter(20000);
         [Tooltip("Specifies when HDRP updates the environment lighting.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
