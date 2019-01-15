@@ -1,0 +1,43 @@
+﻿#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+
+#pragma kernel Upscale
+
+RW_TEXTURE2D(float3, _OutputTexture);
+TEXTURE2D(_InputTexture);
+
+
+// ---------------------------------------------
+// Options
+// ---------------------------------------------
+
+// ------------Upscaling method------------------
+#define NEAREST_NEIGHBOUR 0     // Not yet supported
+#define BILINEAR 1              // Not yet supported
+#define CATMULL_ROM 2           // Not yet supported
+#define LANCOSZ 3               // Not yet supported 
+#define UNSHARP_LAPLACIAN 4     // Not yet supported
+
+#define UPSCALE_METHOD NEAREST_NEIGHBOUR
+
+
+// TODO_FCC: We can probably leverage LDS.
+
+[numthreads(8,8,1)]
+void Upscale(uint3 id : SV_DispatchThreadID)
+{
+    float2 UV = (float2(id.xy) + 0.5f) * _ScreenSize.zw;
+    float3 outVal; 
+#if UPSCALE_METHOD == NEAREST_NEIGHBOUR
+    outVal = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, UV, 0);
+#else
+
+    #error
+
+#endif
+
+
+
+    _OutputTexture[id.xy] = outVal;
+}

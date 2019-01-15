@@ -394,6 +394,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: User effects go here
 
+                if(HDDynamicResolutionHandler.instance.GetCurrentScale() != 1.0f &&     // Dynamic resolution is on.
+                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+                {
+                    using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        DoFXAA(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
+                    }
+                }
+
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
                 {
@@ -1871,6 +1882,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         #endregion
 
+        #region FXAA
+        void DoFXAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        {
+            var cs = m_Resources.shaders.FXAACS;
+            int kernel = cs.FindKernel("FXAA");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+        }
+        #endregion
+
         #region Final Pass
 
         void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source)
@@ -1881,7 +1903,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.shaderKeywords = null;
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && HDDynamicResolutionHandler.instance.GetCurrentScale() == 1.0f)
                 m_FinalPassMaterial.EnableKeyword("FXAA");
 
             if (m_FilmGrain.IsActive())

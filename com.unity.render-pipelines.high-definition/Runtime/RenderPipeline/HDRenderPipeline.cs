@@ -88,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         IBLFilterBSDF[] m_IBLFilterArray = null;
 
+
         ComputeShader m_ScreenSpaceReflectionsCS { get { return m_Asset.renderPipelineResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel      = -1;
         int m_SsrReprojectionKernel = -1;
