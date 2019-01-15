@@ -276,9 +276,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
         static int s_shadeOpaqueDirectShadowMaskFptlKernel;
         static int s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel;
+        static int s_shadeOpaqueDirectLightLayersFptlKernel;
+        static int s_shadeOpaqueDirectLightLayersFptlDebugDisplayKernel;
+        static int s_shadeOpaqueDirectLightLayersShadowMaskFptlKernel;
+        static int s_shadeOpaqueDirectLightLayersShadowMaskFptlDebugDisplayKernel;
 
         static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
         static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
+        static int[] s_shadeOpaqueIndirectLightLayersFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
+        static int[] s_shadeOpaqueIndirectLightLayersShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredContactShadowKernel;
         static int s_deferredContactShadowKernelMSAA;
@@ -340,6 +346,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ContactShadows m_ContactShadows = null;
         bool m_EnableContactShadow = false;
+        bool m_EnableLightLayers = false;
 
         IndirectLightingController m_indirectLightingController = null;
 
@@ -433,9 +440,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LightLoop()
         {}
 
-        int GetDeferredLightingMaterialIndex(int outputSplitLighting, int lightLoopTilePass, int shadowMask, int debugDisplay)
+        int GetDeferredLightingMaterialIndex(int outputSplitLighting, int lightLoopTilePass, int lightLayers, int shadowMask, int debugDisplay)
         {
-            return (outputSplitLighting) | (lightLoopTilePass << 1) | (shadowMask << 2) | (debugDisplay << 3);
+            return (outputSplitLighting) | (lightLoopTilePass << 1) | (lightLayers << 2) | (shadowMask << 3) | (debugDisplay << 4);
         }
 
         public void Build(HDRenderPipelineAsset hdAsset, IBLFilterBSDF[] iBLFilterBSDFArray)
@@ -528,6 +535,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_shadeOpaqueDirectShadowMaskFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl");
             s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl_DebugDisplay");
 
+            s_shadeOpaqueDirectLightLayersFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_LightLayers_Fptl");
+            s_shadeOpaqueDirectLightLayersFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_LightLayers_Fptl_DebugDisplay");
+
+            s_shadeOpaqueDirectLightLayersShadowMaskFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_LightLayers_ShadowMask_Fptl");
+            s_shadeOpaqueDirectLightLayersShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_LightLayers_ShadowMask_Fptl_DebugDisplay");
+
             s_deferredContactShadowKernel = screenSpaceShadowComputeShader.FindKernel("DeferredContactShadow");
             s_deferredContactShadowKernelMSAA = screenSpaceShadowComputeShader.FindKernel("DeferredContactShadowMSAA");
 
@@ -535,37 +548,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
                 s_shadeOpaqueIndirectShadowMaskFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_ShadowMask_Fptl_Variant" + variant);
+                s_shadeOpaqueIndirectLightLayersFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_LightLayers_Fptl_Variant" + variant);
+                s_shadeOpaqueIndirectLightLayersShadowMaskFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_LightLayers_ShadowMask_Fptl_Variant" + variant);
             }
 
             s_LightList = null;
             s_TileList = null;
             s_TileFeatureFlags = null;
 
-            // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
-            m_deferredLightingMaterial = new Material[16];
+            // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - LIGHT_LAYERS - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
+            m_deferredLightingMaterial = new Material[32];
 
             for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
             {
                 for (int lightLoopTilePass = 0; lightLoopTilePass < 2; ++lightLoopTilePass)
                 {
-                    for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
+                    for (int lightLayers = 0; lightLayers < 2; ++lightLayers)
                     {
-                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                        for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                         {
-                            int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
+                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                            {
+                                int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, lightLayers, shadowMask, debugDisplay);
 
-                            m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(m_Resources.shaders.deferredPS);
-                            m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", m_Resources.shaders.deferredPS.name, index);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
-                            CoreUtils.SelectKeyword(m_deferredLightingMaterial[index], "LIGHTLOOP_TILE_PASS", "LIGHTLOOP_SINGLE_PASS", lightLoopTilePass == 1);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
+                                m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(m_Resources.shaders.deferredPS);
+                                m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", m_Resources.shaders.deferredPS.name, index);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
+                                CoreUtils.SelectKeyword(m_deferredLightingMaterial[index], "LIGHTLOOP_TILE_PASS", "LIGHTLOOP_SINGLE_PASS", lightLoopTilePass == 1);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "LIGHT_LAYERS", lightLayers == 1);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
+                                CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
 
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._SrcBlend, (int)BlendMode.One);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._DstBlend, (int)BlendMode.Zero);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._SrcBlend, (int)BlendMode.One);
+                                m_deferredLightingMaterial[index].SetInt(HDShaderIDs._DstBlend, (int)BlendMode.Zero);
+                            }
                         }
                     }
                 }
@@ -642,12 +661,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 for (int lightLoopTilePass = 0; lightLoopTilePass < 2; ++lightLoopTilePass)
                 {
-                    for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
+                    for (int lightLayers = 0; lightLayers < 2; ++lightLayers)
                     {
-                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                        for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                         {
-                            int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, shadowMask, debugDisplay);
-                            CoreUtils.Destroy(m_deferredLightingMaterial[index]);
+                            for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
+                            {
+                                int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopTilePass, lightLayers, shadowMask, debugDisplay);
+                                CoreUtils.Destroy(m_deferredLightingMaterial[index]);
+                            }
                         }
                     }
                 }
@@ -664,6 +686,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
             m_EnableContactShadow = m_FrameSettings.enableContactShadows && m_ContactShadows.enable && m_ContactShadows.length > 0;
+            m_EnableLightLayers = m_FrameSettings.enableLightLayers;
             m_indirectLightingController = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
 
             // Cluster
@@ -2604,20 +2627,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (enableFeatureVariants)
                         {
-                            if (m_enableBakeShadowMask)
-                                kernel = s_shadeOpaqueIndirectShadowMaskFptlKernels[variant];
-                            else
-                                kernel = s_shadeOpaqueIndirectFptlKernels[variant];
-                        }
-                        else
-                        {
-                            if (m_enableBakeShadowMask)
+                            if (m_EnableLightLayers)
                             {
-                                kernel = debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskFptlKernel;
+                                if (m_enableBakeShadowMask)
+                                    kernel = s_shadeOpaqueIndirectLightLayersShadowMaskFptlKernels[variant];
+                                else
+                                    kernel = s_shadeOpaqueIndirectLightLayersFptlKernels[variant];
                             }
                             else
                             {
-                                kernel = debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectFptlKernel;
+                                if (m_enableBakeShadowMask)
+                                    kernel = s_shadeOpaqueIndirectShadowMaskFptlKernels[variant];
+                                else
+                                    kernel = s_shadeOpaqueIndirectFptlKernels[variant];
+                            }
+                        }
+                        else
+                        {
+                            if (m_EnableLightLayers)
+                            {
+                                if (m_enableBakeShadowMask)
+                                {
+                                    kernel = debugDisplaySettings.IsDebugDisplayEnabled() ?
+                                        s_shadeOpaqueDirectLightLayersShadowMaskFptlDebugDisplayKernel :
+                                        s_shadeOpaqueDirectLightLayersShadowMaskFptlKernel;
+                                }
+                                else
+                                {
+                                    kernel = debugDisplaySettings.IsDebugDisplayEnabled() ?
+                                        s_shadeOpaqueDirectLightLayersFptlDebugDisplayKernel :
+                                        s_shadeOpaqueDirectLightLayersFptlKernel;
+                                }
+                            }
+                            else
+                            {
+                                if (m_enableBakeShadowMask)
+                                {
+                                    kernel = debugDisplaySettings.IsDebugDisplayEnabled() ?
+                                        s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel :
+                                        s_shadeOpaqueDirectShadowMaskFptlKernel;
+                                }
+                                else
+                                {
+                                    kernel = debugDisplaySettings.IsDebugDisplayEnabled() ?
+                                        s_shadeOpaqueDirectFptlDebugDisplayKernel :
+                                        s_shadeOpaqueDirectFptlKernel;
+                                }
                             }
                         }
 
@@ -2651,6 +2706,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     int index = GetDeferredLightingMaterialIndex(options.outputSplitLighting ? 1 : 0,
                             m_FrameSettings.lightLoopSettings.enableTileAndCluster ? 1 : 0,
+                            m_EnableLightLayers ? 1 : 0,
                             m_enableBakeShadowMask ? 1 : 0,
                             debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0);
 

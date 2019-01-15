@@ -43,6 +43,7 @@ Shader "Hidden/HDRP/Deferred"
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ LIGHT_LAYERS
 
             #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
 
