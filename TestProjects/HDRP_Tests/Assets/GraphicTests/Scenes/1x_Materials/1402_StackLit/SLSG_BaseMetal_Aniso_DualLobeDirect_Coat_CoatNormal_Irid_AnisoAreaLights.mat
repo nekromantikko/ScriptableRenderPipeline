@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: stacklitSG_all
+  m_Name: SLSG_BaseMetal_Aniso_DualLobeDirect_Coat_CoatNormal_Irid_AnisoAreaLights
   m_Shader: {fileID: -6465566751694194690, guid: 3d2f3e0e322fcf14da2eb21693cd08f2,
     type: 3}
   m_ShaderKeywords: _ANISOTROPY_FOR_AREA_LIGHTS _MATERIAL_FEATURE_ANISOTROPY _MATERIAL_FEATURE_COAT
