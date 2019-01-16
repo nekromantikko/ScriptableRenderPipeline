@@ -1903,7 +1903,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.shaderKeywords = null;
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && HDDynamicResolutionHandler.instance.GetCurrentScale() == 1.0f)
+            var dynResHandler = HDDynamicResolutionHandler.instance;
+            float dynamicResScale = dynResHandler.GetCurrentScale();
+            bool dynamicResIsOn = dynamicResScale != 1.0f;
+            if (dynamicResIsOn)
+            {
+                switch(dynResHandler.filter)
+                {
+                    case HDDynamicResolutionHandler.UpscaleFilter.Bilinear:
+                        m_FinalPassMaterial.EnableKeyword("BILINEAR");
+                        break;
+                    case HDDynamicResolutionHandler.UpscaleFilter.CatmullRom:
+                        m_FinalPassMaterial.EnableKeyword("CATMULL_ROM_4");
+                        break;
+                    case HDDynamicResolutionHandler.UpscaleFilter.Lanczos:
+                        m_FinalPassMaterial.EnableKeyword("LANCZOS");
+                        break;
+
+                }
+            }
+
+            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn)
                 m_FinalPassMaterial.EnableKeyword("FXAA");
 
             if (m_FilmGrain.IsActive())
@@ -1957,7 +1977,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             );
 
             // Blit to backbuffer
-            HDUtils.DrawFullScreen(cmd, camera.viewport, m_FinalPassMaterial, BuiltinRenderTextureType.CameraTarget, null, pass);
+            Rect backBufferRect = camera.viewport;
+            backBufferRect.width  = dynResHandler.cachedOriginalSize.x;
+            backBufferRect.height = dynResHandler.cachedOriginalSize.y;
+
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, BuiltinRenderTextureType.CameraTarget, null, pass);
         }
 
         #endregion

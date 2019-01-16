@@ -300,9 +300,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualWidth = Math.Max(camera.pixelWidth, 1);
             m_ActualHeight = Math.Max(camera.pixelHeight, 1);
 
-            Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(camera.pixelWidth, camera.pixelHeight));
-            m_ActualWidth = scaledSize.x;
-            m_ActualHeight = scaledSize.y;
+            if(isMainGameView)
+            {
+                Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(camera.pixelWidth, camera.pixelHeight));
+                m_ActualWidth = scaledSize.x;
+                m_ActualHeight = scaledSize.y;
+            }
 
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;

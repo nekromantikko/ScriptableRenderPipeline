@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -20,10 +21,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class HDDynamicResolutionHandler
     {
+        public enum UpscaleFilter
+        {
+            Bilinear,
+            CatmullRom,
+            Lanczos 
+        };
 
         private float m_MinScreenFraction = 1.0f;
         private float m_MaxScreenFraction = 1.0f;
         private float m_CurrentFraction = 1.0f;
+        private float m_PrevLerpFactor = -1.0f;
+
+        // Debug
+        public Vector2Int cachedOriginalSize { get; private set; }
+        public bool hasSwitchedResolution { get; private set; }
+
+        public UpscaleFilter filter { get; set; }
+
 
         private PerformDynamicRes m_DynamicResMethod = null;
 
@@ -44,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     s_Instance = new HDDynamicResolutionHandler();
                     s_Instance.SetDynamicResScaler(DefaultDynamicResMethod);
+                    s_Instance.filter = UpscaleFilter.Bilinear;
                 }
 
                 return s_Instance;
@@ -73,18 +89,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DynamicResMethod = scaler;
         }
 
+        public void Update(Action OnResolutionChange = null)
+        {
+            float currLerp = m_DynamicResMethod();
+            if (currLerp != m_PrevLerpFactor)
+            {
+                float lerpFactor = Mathf.Clamp(currLerp, 0.0f, 1.0f);
+                m_CurrentFraction = Mathf.Lerp(m_MinScreenFraction, m_MaxScreenFraction, lerpFactor);
+                m_PrevLerpFactor = currLerp;
+                hasSwitchedResolution = true;
+                OnResolutionChange();
+            }
+            else
+            {
+                hasSwitchedResolution = false;
+            }
+        }
+
         public Vector2Int GetRTHandleScale(Vector2Int size)
         {
-            float lerpFactor = Mathf.Clamp(m_DynamicResMethod(), 0.0f, 1.0f);
-            m_CurrentFraction = Mathf.Lerp(m_MinScreenFraction, m_MaxScreenFraction, lerpFactor);
+            cachedOriginalSize = size;
             Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * m_CurrentFraction), Mathf.CeilToInt(size.y * m_CurrentFraction));
+            scaledSize.x += (1 & scaledSize.x);
+            scaledSize.y += (1 & scaledSize.y);
+            if (hasSwitchedResolution)
+            {
+                Debug.Log("X: "+scaledSize.x + " Y: "+scaledSize.y);
+            }
             return scaledSize;
         }
 
-        // TODO_FCC: Implement.
+
         public float GetCurrentScale()
         {
-            return 0.99f;
+            return m_CurrentFraction;
         }
+
     }
 }

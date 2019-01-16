@@ -8,10 +8,14 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile _ FXAA
         #pragma multi_compile _ GRAIN
 
+        #pragma multi_compile NO_UPSCALE BILINEAR CATMULL_ROM_4
+
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
         #define FXAA_HDR_MAPUNMAP   0
         #define FXAA_SPAN_MAX       (8.0)
@@ -49,6 +53,16 @@ Shader "Hidden/HDRP/FinalPass"
             return output;
         }
 
+        float3 UpscaledResult(float2 UV)
+        {
+        #if BILINEAR
+            return Bilinear(_InputTexture, UV);
+        #elif CATMULL_ROM_4
+            return CatmullRomFourSamples(_InputTexture, UV);
+        #else
+            return Bilinear(_InputTexture, UV);
+        #endif
+        }
 
         float3 Load(int2 icoords, int idx, int idy)
         {
@@ -70,8 +84,11 @@ Shader "Hidden/HDRP/FinalPass"
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
+#ifdef NO_UPSCALE 
             float3 outColor = Load(positionSS, 0, 0);
-
+#else
+            float3 outColor = UpscaledResult(positionNDC.xy);
+#endif
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
             #endif
