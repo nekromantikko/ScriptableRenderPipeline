@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent indirectBounceShadowWarning = new GUIContent("HDRP does not support real-time indirect bounce shadowing for Spot and Point lights.");
             public readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
             public readonly GUIContent useColorTemperature = new GUIContent("Color Temperature", "When enabled, HDRP uses Temperature mode for this Light's color.");
-            public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color HDRP uses to tint the Light source.");
+            public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
 
             // Additional light data

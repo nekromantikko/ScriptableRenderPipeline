@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent baseColorText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A).");
 
-            public static GUIContent metallicText = new GUIContent("Metallic", "Contrsols the scale factor for the Material's Metallic effect.");
+            public static GUIContent metallicText = new GUIContent("Metallic", "Controls the scale factor for the Material's Metallic effect.");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Controls the scale factor for the Material's Smoothness.");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the Material's Smoothness.");
             public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the Materials's Ambient Occlusion effect.");
