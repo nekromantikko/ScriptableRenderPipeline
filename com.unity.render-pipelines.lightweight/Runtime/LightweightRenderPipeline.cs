@@ -221,6 +221,10 @@ namespace UnityEngine.Rendering.LWRP
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
+            // Disables postprocessing in mobile VR. It's stable on mobile yet.
+            if (cameraData.isStereoEnabled && Application.isMobilePlatform)
+                cameraData.postProcessEnabled = false;
+
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
                 Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
