@@ -40,8 +40,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
             public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "Controls the strength of the tessellation effect. Higher values result in more tessellation. Maximum tessellation factor is 15 on the Xbox One and PS4");
-            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Sets the distance (in Unity units) at which tessellation begins to fade out.");
-            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Sets the maximum distance (in Unity unit) to the Camera where HDRP tessellates triangle.");
+            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Sets the distance (in meters) at which tessellation begins to fade out.");
+            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Sets the maximum distance (in meters) to the Camera where HDRP tessellates triangle.");
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Sets the desired screen space size of triangles (in pixels). Smaller values result in smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Controls the strength of Phong tessellation shape (lerp factor).");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "Controls triangle culling. A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");

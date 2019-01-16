@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Density Volume. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "The color this fog scatteres light to.");
-            public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in Unity units.");
+            public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
             public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask. Generate this Texture type using the Density Volume Texture Tool.");
             public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed", "Modify the speed for each axis at which HDRP scrolls the fog Texture.");
             public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling", "Modify the tiling of the fog Texture on each axis individually.");
