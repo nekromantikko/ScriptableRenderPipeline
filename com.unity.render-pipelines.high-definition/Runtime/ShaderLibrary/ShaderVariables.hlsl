@@ -160,7 +160,7 @@ TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 // Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_ColorPyramidTexture);
+TEXTURE2D_ARRAY(_ColorPyramidTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -342,6 +342,16 @@ CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
 
+// Helper macros to handle XR instancing with Texture2DArray
+// Render textures allocated with the flag 'xrInstancing' used Texture2DArray where each slice is associated to an eye.
+// unity_StereoEyeIndex is used to select the eye in the current context.
+// XRTODO:should be functions? rename?
+#define PIXEL_COORD3(pixelCoord) uint3(pixelCoord, unity_StereoEyeIndex)
+#define LOAD_TEXTURE2D_EYE(textureName, unCoord2)                       LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, unity_StereoEyeIndex)
+#define LOAD_TEXTURE2D_EYE_MSAA(textureName, unCoord2, sampleIndex)     LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, unity_StereoEyeIndex, sampleIndex)
+#define LOAD_TEXTURE2D_EYE_LOD(textureName, unCoord2, lod)              LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, unity_StereoEyeIndex, lod)
+#define SAMPLE_TEXTURE2D_EYE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, unity_StereoEyeIndex, lod)
+
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
 float SampleCameraDepth(uint2 pixelCoords)
@@ -354,9 +364,9 @@ float SampleCameraDepth(float2 uv)
     return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
-float3 SampleCameraColor(float2 uv, float lod)
+float4 SampleCameraColor(float2 uv, float lod)
 {
-    return SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, lod).rgb;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, unity_StereoEyeIndex, lod);
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

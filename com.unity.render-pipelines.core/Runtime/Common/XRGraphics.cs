@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEngine.Assertions;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 using XRSettings = UnityEngine.XR.XRSettings;
@@ -120,6 +121,21 @@ namespace UnityEngine.Rendering
             if (!enabled || stereoRenderingMode != StereoRenderingMode.SinglePass)
                 return 0;
             return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
+        }
+
+        public static VRTextureUsage OverrideRenderTargetDesc(bool xrInstancing, ref TextureDimension dimension)
+        {
+            if (xrInstancing)
+            {
+                Assert.AreEqual(dimension, TextureDimension.Tex2D);
+                dimension = TextureDimension.Tex2DArray;
+            }
+
+            // XRTODO: is this correct?
+            if (stereoRenderingMode == StereoRenderingMode.SinglePassInstanced || stereoRenderingMode == StereoRenderingMode.SinglePassMultiView)
+                return XRGraphics.eyeTextureDesc.vrUsage;
+
+            return VRTextureUsage.None;
         }
 
         public static RenderTextureDescriptor eyeTextureDesc
