@@ -156,7 +156,7 @@ SAMPLER_CMP(s_linear_clamp_compare_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_ARRAY(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 // Color pyramid (width, height, lodcount, Unused)
@@ -356,7 +356,7 @@ CBUFFER_END
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
 float SampleCameraDepth(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_LOD(_CameraDepthTexture, pixelCoords, 0).r;
+    return LOAD_TEXTURE2D_EYE_LOD(_CameraDepthTexture, pixelCoords, 0).r;
 }
 
 float SampleCameraDepth(float2 uv)

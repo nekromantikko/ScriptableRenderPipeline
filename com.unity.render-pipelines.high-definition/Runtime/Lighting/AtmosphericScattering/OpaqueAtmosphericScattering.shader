@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
 
         float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
-        Texture2DMS<float> _DepthTextureMS;
+        Texture2DMSArray<float> _DepthTextureMS;
         
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -56,7 +56,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             float2 positionSS = input.positionCS.xy;
             float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
-            float  depth      = LOAD_TEXTURE2D(_CameraDepthTexture, (int2)positionSS).x;
+            float  depth      = SampleCameraDepth((int2)positionSS);
 
             return AtmosphericScatteringCompute(input, V, depth);
         }
@@ -65,7 +65,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             float2 positionSS = input.positionCS.xy;
             float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
-            float  depth      = _DepthTextureMS.Load((int2)positionSS, sampleIndex).x;
+            float  depth      = LOAD_TEXTURE2D_EYE_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
 
             return AtmosphericScatteringCompute(input, V, depth);
         }

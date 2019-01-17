@@ -96,7 +96,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 #endif
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-    float  deviceDepth = LOAD_TEXTURE2D(_DepthPyramidTexture, positionSS).r;
+    float  deviceDepth = LOAD_TEXTURE2D_EYE(_DepthPyramidTexture, positionSS).r;
            deviceDepth = (deviceDepth - _SsrThicknessBias) / _SsrThicknessScale; // Apply a small bias. TODO: precompute
     float3 positionWS  = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
     float3 V           = GetWorldSpaceNormalizeViewDir(positionWS);
@@ -201,7 +201,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         float4 bounds;
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
-        bounds.z  = LOAD_TEXTURE2D(_DepthPyramidTexture, mipOffset + mipCoord).r;
+        bounds.z  = LOAD_TEXTURE2D_EYE(_DepthPyramidTexture, mipOffset + mipCoord).r;
         rayPos.z  = bounds.z;
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))

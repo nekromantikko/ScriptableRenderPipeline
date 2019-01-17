@@ -17,18 +17,18 @@
 
 #endif
 
-float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
+float FetchDepth(Texture2DArray depthTexture, uint2 pixCoord, int eyeIndex)
 {
-    float zdpth = LOAD_TEXTURE2D(depthTexture, pixCoord.xy).x;
+    float zdpth = LOAD_TEXTURE2D_ARRAY(depthTexture, pixCoord.xy, eyeIndex).x;
 #if UNITY_REVERSED_Z
     zdpth = 1.0 - zdpth;
 #endif
     return zdpth;
 }
 
-float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
+float FetchDepthMSAA(Texture2DMSArray<float> depthTexture, uint2 pixCoord, int eyeIndex, uint sampleIdx)
 {
-    float zdpth = LOAD_TEXTURE2D_MSAA(depthTexture, pixCoord.xy, sampleIdx).x;
+    float zdpth = LOAD_TEXTURE2D_ARRAY_MSAA(depthTexture, pixCoord.xy, eyeIndex, sampleIdx).x;
 #if UNITY_REVERSED_Z
     zdpth = 1.0 - zdpth;
 #endif

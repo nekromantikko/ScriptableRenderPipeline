@@ -12,7 +12,7 @@ RWTexture2D<float4>     _SourceTexture;
 RWTexture2D<float4>     _OutputTexture;
 
 // ScreenSpace buffers
-Texture2D<float>						_DepthTexture;
+Texture2DArray<float>   _DepthTexture;
 
 // Filter parameters
 int                 _DenoiseRadius;
@@ -21,14 +21,14 @@ float               _GaussianSigma;
 float3 ReadNormalValue(uint2 positionSS)
 {
     NormalData normalData;
-    float4 normalBuffer  = _NormalBufferTexture[positionSS];
+    float4 normalBuffer  = _NormalBufferTexture[PIXEL_COORD3(positionSS)];
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
     return normalData.normalWS;
 }
 
 float ReadDepthValue(uint2 positionSS)
 {
-    float hitDeviceDepth = LOAD_TEXTURE2D(_DepthTexture, positionSS).r;
+    float hitDeviceDepth = LOAD_TEXTURE2D_EYE(_DepthTexture, positionSS).r;
     return LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 }
 
@@ -42,7 +42,7 @@ void GaussianBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     // Read the central pixel values
     float depthValue  = ReadDepthValue(currentPixelCoordinate);
     NormalData normalData;
-    DecodeFromNormalBuffer(_NormalBufferTexture[currentPixelCoordinate], currentPixelCoordinate, normalData);
+    DecodeFromNormalBuffer(_NormalBufferTexture[PIXEL_COORD3(currentPixelCoordinate)], currentPixelCoordinate, normalData);
 
     float3 denoisedColor = float3(0.0f, 0.0f, 0.0f);
 

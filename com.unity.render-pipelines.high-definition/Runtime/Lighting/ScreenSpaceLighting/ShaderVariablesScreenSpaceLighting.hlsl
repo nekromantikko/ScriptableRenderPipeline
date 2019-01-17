@@ -3,7 +3,7 @@
 #else
     // Rough refraction texture
     // Depth pyramid (width, height, lodcount, Unused)
-    TEXTURE2D(_DepthPyramidTexture);
+    TEXTURE2D_ARRAY(_DepthPyramidTexture);
     // Ambient occlusion texture
     TEXTURE2D(_AmbientOcclusionTexture);
     TEXTURE2D(_CameraMotionVectorsTexture);
