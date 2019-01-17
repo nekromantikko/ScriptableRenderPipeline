@@ -130,63 +130,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
             List<HDAdditionalLightData> lightData = m_RaytracingManager.RequestHDLightList(hdCamera);
 
-            bool missingResources = rtEnvironement == null || noiseTexture == null || forwardShader == null || raytracingMask == null || accelerationStructure == null || lightData == null;
+            bool missingResources = noiseTexture == null || forwardShader == null || raytracingMask == null || accelerationStructure == null || lightData == null;
 
             // If any resource or game-object is missing We stop right away
-            if (!rtEnvironement.rayrtacedObjects || missingResources)
+            if (missingResources)
                 return;
 
-            if (m_RaytracingFlagMaterial == null)
-                m_RaytracingFlagMaterial = CoreUtils.CreateEngineMaterial(raytracingMask);
-
-            // Before going into raytracing, we need to flag which pixels needs to be raytracing
-            EvaluateRaytracingMask(cull, hdCamera, cmd, renderContext);
-
-            // Evaluate the light cluster
-            m_LightCluster.EvaluateLightClusters(cmd, hdCamera, lightData);
-
-            // Define the shader pass to use for the reflection pass
-            cmd.SetRaytracingShaderPass(forwardShader, "RTRaytrace_Forward");
-
-            // Set the acceleration structure for the pass
-            cmd.SetRaytracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
-
-            // Inject the ray-tracing noise data
-            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingNoiseTexture, noiseTexture);
-            cmd.SetRaytracingIntParams(forwardShader, HDShaderIDs._RaytracingNoiseResolution, noiseTexture.width);
-            cmd.SetRaytracingIntParams(forwardShader, HDShaderIDs._RaytracingNumNoiseLayers, noiseTexture.depth);
-
-            // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.raytracingRayLength);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, rtEnvironement.rayMaxDepth);
-
-            // Set the data for the ray generation
-            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingFlagMask, m_RaytracingFlagTarget);
-            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._CameraColorTextureRW, outputTexture);
-
-            // Compute the pixel spread value
-            float pixelSpreadAngle = Mathf.Atan(2.0f * Mathf.Tan(hdCamera.camera.fieldOfView * Mathf.PI / 360.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight));
-            cmd.SetRaytracingFloatParam(forwardShader, HDShaderIDs._PixelSpreadAngle, pixelSpreadAngle);
-
-            if(lightData.Count != 0)
+            if (rtEnvironement != null)
             {
-                // LightLoop data
-                cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, m_LightCluster.GetCluster());
-                cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, m_LightCluster.GetLightDatas());
-                cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, m_LightCluster.GetMinClusterPos());
-                cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, m_LightCluster.GetMaxClusterPos());
-                cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, rtEnvironement.maxNumLightsPercell);
-                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, m_LightCluster.GetPunctualLightCount());
-                cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, m_LightCluster.GetAreaLightCount());
+                if (!rtEnvironement.rayrtacedObjects) // Only check this if environment exists
+                    return;
+                if (m_RaytracingFlagMaterial == null)
+                    m_RaytracingFlagMaterial = CoreUtils.CreateEngineMaterial(raytracingMask);
+
+                // Before going into raytracing, we need to flag which pixels needs to be raytracing
+                EvaluateRaytracingMask(cull, hdCamera, cmd, renderContext);
+
+                // Evaluate the light cluster
+                m_LightCluster.EvaluateLightClusters(cmd, hdCamera, lightData);
+
+                // Define the shader pass to use for the reflection pass
+                cmd.SetRaytracingShaderPass(forwardShader, "RTRaytrace_Forward");
+
+                // Set the acceleration structure for the pass
+                cmd.SetRaytracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
+
+                // Inject the ray-tracing noise data
+                cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingNoiseTexture, noiseTexture);
+                cmd.SetRaytracingIntParams(forwardShader, HDShaderIDs._RaytracingNoiseResolution, noiseTexture.width);
+                cmd.SetRaytracingIntParams(forwardShader, HDShaderIDs._RaytracingNumNoiseLayers, noiseTexture.depth);
+
+                // Inject the ray generation data
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.raytracingRayLength);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, rtEnvironement.rayMaxDepth);
+
+                // Set the data for the ray generation
+                cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingFlagMask, m_RaytracingFlagTarget);
+                cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._CameraColorTextureRW, outputTexture);
+
+                // Compute the pixel spread value
+                float pixelSpreadAngle = Mathf.Atan(2.0f * Mathf.Tan(hdCamera.camera.fieldOfView * Mathf.PI / 360.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight));
+                cmd.SetRaytracingFloatParam(forwardShader, HDShaderIDs._PixelSpreadAngle, pixelSpreadAngle);
+
+                if (lightData.Count != 0)
+                {
+                    // LightLoop data
+                    cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, m_LightCluster.GetCluster());
+                    cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, m_LightCluster.GetLightDatas());
+                    cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, m_LightCluster.GetMinClusterPos());
+                    cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, m_LightCluster.GetMaxClusterPos());
+                    cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, rtEnvironement.maxNumLightsPercell);
+                    cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, m_LightCluster.GetPunctualLightCount());
+                    cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, m_LightCluster.GetAreaLightCount());
+                }
+
+                // Set the data for the ray miss
+                cmd.SetRaytracingTextureParam(forwardShader, m_MissShaderName, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
+
+                // Run the calculus
+                cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
             }
 
-            // Set the data for the ray miss
-            cmd.SetRaytracingTextureParam(forwardShader, m_MissShaderName, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
-
-            // Run the calculus
-            cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
         }
     }
 #endif
