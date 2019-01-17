@@ -276,11 +276,7 @@ namespace UnityEngine.Rendering.LWRP
         public int msaaSampleCount
         {
             get { return (int)m_MSAA; }
-            set 
-            { 
-                m_MSAA = (MsaaQuality)value;
-                QualitySettings.antiAliasing = value; 
-            }
+            set { m_MSAA = (MsaaQuality)value; }
         }
 
         public float renderScale

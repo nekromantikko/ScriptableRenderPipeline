@@ -80,10 +80,6 @@ namespace UnityEngine.Rendering.LWRP
             PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
 
-            // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
-                QualitySettings.antiAliasing = asset.msaaSampleCount;
-
             Shader.globalRenderPipeline = "LightweightPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
@@ -137,6 +133,7 @@ namespace UnityEngine.Rendering.LWRP
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
 
+            int prevSamplesCount = QualitySettings.antiAliasing;
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
             using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
@@ -178,6 +175,8 @@ namespace UnityEngine.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             context.Submit();
+            
+            QualitySettings.antiAliasing = prevSamplesCount;
         }
 
         static void SetSupportedRenderingFeatures()
@@ -209,6 +208,9 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
             else
                 cameraData.msaaSamples = 1;
+            
+            // We have to set antiAliasing settings as this is the only way to enable/disable MSAA for backbuffer
+            // We save/restore this settings per-camera in RenderSingleCamera.
             QualitySettings.antiAliasing = cameraData.msaaSamples;
 
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
