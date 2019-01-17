@@ -29,8 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
 - Fixed rendering in the gamma color space, so it doesn't appear darker.
 - Fixed specular issues on mobile. [case 1109017](https://issuetracker.unity3d.com/issues/scaled-objects-render-shadows-and-specularity-incorrectly-in-the-lwrp-on-device)
-- Fixed issue causing LWRP to create MSAA framebuffer even when MSAA setting is disabled.
-- Post-processing in mobile VR is forced to be disabled as it was causing many rendering issues.
+- Fixed issue causing LWRP to create MSAA framebuffer even when MSAA setting was disabled.
+- Post-processing in mobile VR is now forced to be disabled. It was causing many rendering issues.
 
 ## [5.2.0] - 2018-11-27
 ### Added
