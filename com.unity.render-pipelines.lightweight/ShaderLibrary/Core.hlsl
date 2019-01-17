@@ -19,7 +19,7 @@
 // SRP doesn't use Graphics Settings Quality Tiers.
 // We should expose shader quality tiers in the pipeline asset.
 // Meanwhile, it's forced to be:
-// High Quality: Non-mobile platoforms or shader explicit defined SHADER_HINT_NICE_QUALITY
+// High Quality: Non-mobile platforms or shader explicit defined SHADER_HINT_NICE_QUALITY
 // Medium: Mobile aside from GLES2
 // Low: GLES2 
 #if SHADER_HINT_NICE_QUALITY

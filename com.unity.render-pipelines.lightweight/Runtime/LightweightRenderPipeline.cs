@@ -176,7 +176,8 @@ namespace UnityEngine.Rendering.LWRP
             CommandBufferPool.Release(cmd);
             context.Submit();
             
-            QualitySettings.antiAliasing = prevSamplesCount;
+            if (prevSamplesCount != QualitySettings.antiAliasing)
+                QualitySettings.antiAliasing = prevSamplesCount;
         }
 
         static void SetSupportedRenderingFeatures()
@@ -209,10 +210,6 @@ namespace UnityEngine.Rendering.LWRP
             else
                 cameraData.msaaSamples = 1;
             
-            // We have to set antiAliasing settings as this is the only way to enable/disable MSAA for backbuffer
-            // We save/restore this settings per-camera in RenderSingleCamera.
-            QualitySettings.antiAliasing = cameraData.msaaSamples;
-
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
