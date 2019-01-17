@@ -6,7 +6,7 @@
 
 float3 Sample(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), float2 UV)
 {
-    float2 ScaledUV = UV * _ScreenToTargetScale.xy;
+    float2 ScaledUV = min(UV, 1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy;
     return SAMPLE_TEXTURE2D_LOD(_InputTexture, _InputTextureSampler, ScaledUV, 0).xyz;
 }
 
@@ -25,5 +25,5 @@ float3 CatmullRomFourSamples(TEXTURE2D(_InputTexture), float2 UV)
 
 float3 Lanczos(TEXTURE2D(_InputTexture), float2 UV)
 {
-
+    // Not yet implemented.
 }

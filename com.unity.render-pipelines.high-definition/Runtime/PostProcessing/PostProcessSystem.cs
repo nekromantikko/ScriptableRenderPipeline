@@ -1910,15 +1910,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 switch(dynResHandler.filter)
                 {
-                    case HDDynamicResolutionHandler.UpscaleFilter.Bilinear:
+                    case DynamicResUpscaleFilter.Bilinear:
                         m_FinalPassMaterial.EnableKeyword("BILINEAR");
                         break;
-                    case HDDynamicResolutionHandler.UpscaleFilter.CatmullRom:
+                    case DynamicResUpscaleFilter.CatmullRom:
                         m_FinalPassMaterial.EnableKeyword("CATMULL_ROM_4");
                         break;
-                    case HDDynamicResolutionHandler.UpscaleFilter.Lanczos:
-                        m_FinalPassMaterial.EnableKeyword("LANCZOS");
-                        break;
+                    //case HDDynamicResolutionHandler.UpscaleFilter.Lanczos:
+                    //    m_FinalPassMaterial.EnableKeyword("LANCZOS");
+                    //    break;
 
                 }
             }

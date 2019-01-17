@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public enum DynamicResolutionType
+    public enum DynResolutionType
     {
         Hardware,
         Software,
@@ -21,23 +21,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class HDDynamicResolutionHandler
     {
-        public enum UpscaleFilter
-        {
-            Bilinear,
-            CatmullRom,
-            Lanczos 
-        };
-
         private float m_MinScreenFraction = 1.0f;
         private float m_MaxScreenFraction = 1.0f;
         private float m_CurrentFraction = 1.0f;
-        private float m_PrevLerpFactor = -1.0f;
+        private float m_PrevFraction = -1.0f;
+        private bool  m_ForcingRes = false;
 
         // Debug
         public Vector2Int cachedOriginalSize { get; private set; }
         public bool hasSwitchedResolution { get; private set; }
 
-        public UpscaleFilter filter { get; set; }
+        public DynamicResUpscaleFilter filter { get; set; }
 
 
         private PerformDynamicRes m_DynamicResMethod = null;
@@ -59,44 +53,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     s_Instance = new HDDynamicResolutionHandler();
                     s_Instance.SetDynamicResScaler(DefaultDynamicResMethod);
-                    s_Instance.filter = UpscaleFilter.Bilinear;
+                    s_Instance.filter = DynamicResUpscaleFilter.Bilinear;
                 }
 
                 return s_Instance;
             }
         }
 
-        public void SetMinScreenPercentage(float minScreenPercentage)
+        private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
-            float minScreenFrac = Mathf.Clamp(minScreenPercentage / 100.0f, 0.1f, 1.0f);
+            float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
             m_MinScreenFraction = minScreenFrac;
-        }
-
-        public void SetMaxScreenPercentage(float maxScreenPercentage)
-        {
-            float maxScreenFrac = Mathf.Clamp(maxScreenPercentage / 100.0f, m_MinScreenFraction, 3.0f);
+            float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
             m_MaxScreenFraction = maxScreenFrac;
+
+            filter = settings.upsampleFilter;
+            m_ForcingRes = settings.forceResolution;
+
+            if (m_ForcingRes)
+            {
+                float fraction = Mathf.Clamp(settings.forcedPercentage / 100.0f, 0.1f, 1.0f);
+                m_CurrentFraction = fraction;
+            }
         }
 
-        public void ForceResolutionPercentage(float percentage)
-        {
-            float fraction = Mathf.Clamp(percentage / 100.0f, m_MinScreenFraction, m_MaxScreenFraction);
-            m_CurrentFraction = fraction;
-        }
 
         public void SetDynamicResScaler(PerformDynamicRes scaler)
         {
             m_DynamicResMethod = scaler;
         }
 
-        public void Update(Action OnResolutionChange = null)
+        public void Update(GlobalDynamicResolutionSettings settings, Action OnResolutionChange = null)
         {
-            float currLerp = m_DynamicResMethod();
-            if (currLerp != m_PrevLerpFactor)
+            ProcessSettings(settings);
+            if (!m_ForcingRes)
             {
+                float currLerp = m_DynamicResMethod();
                 float lerpFactor = Mathf.Clamp(currLerp, 0.0f, 1.0f);
                 m_CurrentFraction = Mathf.Lerp(m_MinScreenFraction, m_MaxScreenFraction, lerpFactor);
-                m_PrevLerpFactor = currLerp;
+            }
+
+            if (m_CurrentFraction != m_PrevFraction)
+            {
+                m_PrevFraction = m_CurrentFraction;
                 hasSwitchedResolution = true;
                 OnResolutionChange();
             }

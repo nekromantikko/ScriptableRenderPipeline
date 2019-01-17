@@ -892,7 +892,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool assetFrameSettingsIsDirty = m_Asset.frameSettingsIsDirty;
             m_Asset.UpdateDirtyFrameSettings();
 
-            HDDynamicResolutionHandler.instance.Update(() => { m_PostProcessSystem.ResetHistory(); });
+            HDDynamicResolutionHandler.instance.Update(m_Asset.renderPipelineSettings.dynamicResolutionSettings, () => { m_PostProcessSystem.ResetHistory(); });
 
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
