@@ -27,15 +27,16 @@
 #pragma kernel KColorDownsample          KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
 #pragma kernel KColorDownsampleCopyMip0  KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsampleCopyMip0  COPY_MIP_0
 
+#define unity_StereoEyeIndex 0
 
 #if COPY_MIP_0
-Texture2D<float4> _Source;
-RWTexture2D<float4> _Mip0;
+Texture2DArray<float4> _Source;
+RWTexture2DArray<float4> _Mip0;
 #else
-RWTexture2D<float4> _Source;
+RWTexture2DArray<float4> _Source;
 #endif
 
-RWTexture2D<float4> _Destination;
+RWTexture2DArray<float4> _Destination;
 
 SamplerState sampler_LinearClamp;
 
@@ -122,7 +123,7 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
     float4 blurred = BlurPixels(s0, s1, s2, s3, s4, s5, s6, s7, s8);
 
     // Write to the final target
-    _Destination[pixelCoord] = blurred;
+    _Destination[uint3(pixelCoord, unity_StereoEyeIndex)] = blurred;
 }
 
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
@@ -133,10 +134,10 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
     uint2 uthreadUL = uint2(max(0, threadUL));
 
     uint2 size = uint2(_Size.xy) - 1u;
-    float4 p00 = _Source[min(uthreadUL + uint2(0u, 0u), size)];
-    float4 p10 = _Source[min(uthreadUL + uint2(1u, 0u), size)];
-    float4 p11 = _Source[min(uthreadUL + uint2(1u, 1u), size)];
-    float4 p01 = _Source[min(uthreadUL + uint2(0u, 1u), size)];
+    float4 p00 = _Source[uint3(min(uthreadUL + uint2(0u, 0u), size), unity_StereoEyeIndex)];
+    float4 p10 = _Source[uint3(min(uthreadUL + uint2(1u, 0u), size), unity_StereoEyeIndex)];
+    float4 p11 = _Source[uint3(min(uthreadUL + uint2(1u, 1u), size), unity_StereoEyeIndex)];
+    float4 p01 = _Source[uint3(min(uthreadUL + uint2(0u, 1u), size), unity_StereoEyeIndex)];
 
     // Store the 4 downsampled pixels in LDS
     uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
@@ -165,17 +166,17 @@ void MAIN_DOWNSAMPLE(uint2 dispatchThreadId : SV_DispatchThreadID)
     uint2 c10 = min(offset + uint2(1u, 0u), size);
     uint2 c11 = min(offset + uint2(1u, 1u), size);
     uint2 c01 = min(offset + uint2(0u, 1u), size);
-    float4 p00 = _Source[c00];
-    float4 p10 = _Source[c10];
-    float4 p11 = _Source[c11];
-    float4 p01 = _Source[c01];
+    float4 p00 = _Source[uint3(c00, unity_StereoEyeIndex)];
+    float4 p10 = _Source[uint3(c10, unity_StereoEyeIndex)];
+    float4 p11 = _Source[uint3(c11, unity_StereoEyeIndex)];
+    float4 p01 = _Source[uint3(c01, unity_StereoEyeIndex)];
 
     #if COPY_MIP_0
-    _Mip0[c00] = p00;
-    _Mip0[c10] = p10;
-    _Mip0[c11] = p11;
-    _Mip0[c01] = p01;
+    _Mip0[uint3(c00, unity_StereoEyeIndex)] = p00;
+    _Mip0[uint3(c10, unity_StereoEyeIndex)] = p10;
+    _Mip0[uint3(c11, unity_StereoEyeIndex)] = p11;
+    _Mip0[uint3(c01, unity_StereoEyeIndex)] = p01;
     #endif
 
-    _Destination[dispatchThreadId] = (p00 + p01 + p11 + p10) * 0.25;
+    _Destination[uint3(dispatchThreadId, unity_StereoEyeIndex)] = (p00 + p01 + p11 + p10) * 0.25;
 }

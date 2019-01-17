@@ -35,17 +35,21 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
+        UNITY_SETUP_INSTANCE_ID(input);
         Varyings output;
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         return output;
     }
 
@@ -120,6 +124,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
 
     float4 RenderSky(Varyings input)
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
 
         // Reverse it to point into the scene

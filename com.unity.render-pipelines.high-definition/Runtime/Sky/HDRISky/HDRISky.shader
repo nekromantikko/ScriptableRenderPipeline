@@ -22,6 +22,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
@@ -32,10 +33,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     Varyings Vert(Attributes input)
     {
+        UNITY_SETUP_INSTANCE_ID(input);
         Varyings output;
-
-        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         return output;
     }
 

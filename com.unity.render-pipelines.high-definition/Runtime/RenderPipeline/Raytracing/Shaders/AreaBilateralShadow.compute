@@ -12,7 +12,7 @@ RWTexture2D<float4>     _SNTextureUAV;
 RWTexture2D<float4>     _UNTextureUAV;
 
 // ScreenSpace buffers
-Texture2D<float>						_DepthTexture;
+Texture2DArray<float>	_DepthTexture;
 
 // Filter parameters
 int                 _DenoiseRadius;
@@ -30,14 +30,14 @@ float square(float value)
 float3 ReadNormalValue(uint2 positionSS)
 {
     NormalData normalData;
-    float4 normalBuffer  = _NormalBufferTexture[positionSS];
+    float4 normalBuffer  = _NormalBufferTexture[uint3(positionSS, unity_StereoEyeIndex)];
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
     return normalData.normalWS;
 }
 
 float ReadDepthValue(uint2 positionSS)
 {
-    float hitDeviceDepth = LOAD_TEXTURE2D(_DepthTexture, positionSS).r;
+    float hitDeviceDepth = LOAD_TEXTURE2D_ARRAY(_DepthTexture, positionSS, unity_StereoEyeIndex).r;
     return LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 }
 

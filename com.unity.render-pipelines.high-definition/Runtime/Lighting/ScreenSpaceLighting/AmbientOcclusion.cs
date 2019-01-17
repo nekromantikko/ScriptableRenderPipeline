@@ -104,6 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                 filterMode: FilterMode.Bilinear,
                 colorFormat: RenderTextureFormat.R8,
+                dimension: TextureDimension.Tex2DArray,
                 sRGB: false,
                 enableRandomWrite: true,
                 name: "Ambient Occlusion"
@@ -114,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MultiAmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: RenderTextureFormat.RG16,
+                    dimension: TextureDimension.Tex2DArray,
                     sRGB: false,
                     enableRandomWrite: true,
                     name: "Ambient Occlusion MSAA"
@@ -311,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!IsActive(camera, settings))
             {
                 // No AO applied - neutral is black, see the comment in the shaders
-                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, HDUtils.clearTexture2DArray);
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
                 return;
             }
@@ -339,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
-                dimension: TextureDimension.Tex2D,
+                dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
                 autoGenerateMips: false,
@@ -358,7 +360,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
-                slices: 16,
+                slices: 16, // XRTODO: multiply by eyeCount
                 autoGenerateMips: false,
                 enableMSAA: false,
                 enableRandomWrite: uav,

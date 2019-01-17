@@ -746,7 +746,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             frameIndex &= 1;
 
-            return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf,
+            return rtHandleSystem.Alloc(Vector2.one, colorFormat: RenderTextureFormat.ARGBHalf, dimension: TextureDimension.Tex2DArray,
                                         sRGB: false, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false,
                                         name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
         }

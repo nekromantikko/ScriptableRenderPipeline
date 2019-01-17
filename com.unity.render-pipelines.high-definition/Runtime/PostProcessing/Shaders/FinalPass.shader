@@ -17,7 +17,7 @@ Shader "Hidden/HDRP/FinalPass"
         #define FXAA_REDUCE_MUL     (1.0 / 8.0)
         #define FXAA_REDUCE_MIN     (1.0 / 128.0)
 
-        TEXTURE2D(_InputTexture);
+        TEXTURE2D_ARRAY(_InputTexture);
         TEXTURE2D(_GrainTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
 
@@ -51,12 +51,12 @@ Shader "Hidden/HDRP/FinalPass"
         float3 Fetch(float2 coords, float2 offset)
         {
             float2 uv = saturate(coords + offset) * _ScreenToTargetScale.xy;
-            return SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_InputTexture, sampler_LinearClamp, uv, unity_StereoEyeIndex, 0.0).xyz;
         }
 
         float3 Load(int2 icoords, int idx, int idy)
         {
-            return LOAD_TEXTURE2D(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).xyz;
+            return LOAD_TEXTURE2D_ARRAY(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0), unity_StereoEyeIndex).xyz;
         }
 
         float3 GetColor(Varyings input, out uint2 positionSS)

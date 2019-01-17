@@ -210,6 +210,11 @@ namespace UnityEngine.Experimental.Rendering
 
                 // Grab the render texture
                 var renderTexture = rth.m_RT;
+                if (renderTexture == null)
+                {
+                    Debug.Assert(renderTexture != null, rth.m_Name + " is null! Skipping resize.");
+                    continue;
+                }
 
                 // Free the previous version
                 renderTexture.Release();

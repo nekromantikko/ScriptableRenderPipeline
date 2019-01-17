@@ -32,7 +32,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     DecalSurfaceData surfaceData;
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-	float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
+    float depth = SampleCameraDepth(input.positionSS.xy);
 	PositionInputs posInput = GetPositionInput_Stereo(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
@@ -66,9 +66,10 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 #endif        
 
-        uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
+        uint3 coords = uint3(input.positionSS.xy / 8, unity_StereoEyeIndex);
+        uint oldVal = UnpackByte(_DecalHTile[coords]);
         oldVal |= surfaceData.HTileMask;
-        _DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
+        _DecalHTile[coords] = PackByte(oldVal);
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     }

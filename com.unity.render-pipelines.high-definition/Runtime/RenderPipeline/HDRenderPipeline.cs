@@ -386,33 +386,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
             m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.renderPipelineSettings, m_Asset.renderPipelineResources);
 
-            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "CameraColor");
-            m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, name: "CameraSSSDiffuseLighting");
+            // XRTODO: vrusage
+            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.ARGBHalf, dimension: TextureDimension.Tex2DArray, sRGB: false, enableRandomWrite: true, name: "CameraColor");
+            m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.RGB111110Float, dimension: TextureDimension.Tex2DArray, sRGB: false, enableRandomWrite: true, name: "CameraSSSDiffuseLighting");
 
-            m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag(), name: "Distortion");
+            m_DistortionBuffer = RTHandles.Alloc(Vector2.one, colorFormat: Builtin.GetDistortionBufferFormat(), dimension: TextureDimension.Tex2DArray, sRGB: Builtin.GetDistortionBufferSRGBFlag(), name: "Distortion");
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properlye
             // Use RG16 as we only have one deferred directional and one screen space shadow light currently
-            m_ScreenSpaceShadowsBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.R16, sRGB: false, enableRandomWrite: true, name: "ScreenSpaceShadowsBuffer");
+            m_ScreenSpaceShadowsBuffer = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.R16, dimension: TextureDimension.Tex2DArray, sRGB: false, enableRandomWrite: true, name: "ScreenSpaceShadowsBuffer");
 
             if (settings.supportSSR)
             {
                 // m_SsrDebugTexture    = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: "SSR_Debug_Texture");
-                m_SsrHitPointTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RG32,      sRGB: false, enableRandomWrite: true, name: "SSR_Hit_Point_Texture");
-                m_SsrLightingTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf,  sRGB: false, enableRandomWrite: true, name: "SSR_Lighting_Texture");
+                m_SsrHitPointTexture = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.RG32,     dimension: TextureDimension.Tex2DArray, sRGB: false, enableRandomWrite: true, name: "SSR_Hit_Point_Texture");
+                m_SsrLightingTexture = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.ARGBHalf, dimension: TextureDimension.Tex2DArray, sRGB: false, enableRandomWrite: true, name: "SSR_Lighting_Texture");
             }
 
             if (Debug.isDebugBuild)
             {
-                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugColorPicker");
-                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugFullScreen");
+                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one,    colorFormat: RenderTextureFormat.ARGBHalf, dimension: TextureDimension.Tex2DArray, sRGB: false, name: "DebugColorPicker");
+                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.ARGBHalf, dimension: TextureDimension.Tex2DArray, sRGB: false, name: "DebugFullScreen");
             }
 
             // Let's create the MSAA textures
             if (m_Asset.renderPipelineSettings.supportMSAA)
             {
-                m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, bindTextureMS: true, enableMSAA: true, name: "CameraColorMSAA");
-                m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, bindTextureMS: true, enableMSAA: true, name: "CameraSSSDiffuseLightingMSAA");
+                m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.ARGBHalf, dimension: TextureDimension.Tex2DArray, sRGB: false, bindTextureMS: true, enableMSAA: true, name: "CameraColorMSAA");
+                m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.RGB111110Float, dimension: TextureDimension.Tex2DArray, sRGB: false, bindTextureMS: true, enableMSAA: true, name: "CameraSSSDiffuseLightingMSAA");
             }
         }
 
@@ -740,7 +741,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (hdCamera.frameSettings.enableSSR)
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
                 else
-                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, HDUtils.clearTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, HDUtils.clearTexture2DArray);
             }
         }
 
@@ -2733,7 +2734,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             	if (!hdCamera.colorPyramidHistoryIsValid)
             	{
-                	cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, HDUtils.clearTexture);
+                	cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, HDUtils.clearTexture2DArray);
                 	hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
             	}
 			}

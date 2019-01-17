@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Format,
                     FilterMode.Point,
                     TextureWrapMode.Clamp,
-                    TextureDimension.Tex2D,
+                    TextureDimension.Tex2DArray,
                     false,
                     false,
                     true,

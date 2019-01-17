@@ -123,8 +123,8 @@ CBUFFER_END
 // variable declaration
 //-------------------------------------------------------------------------------------
 
-RWTexture2D<float3> diffuseLightingUAV;
-RWTexture2D<float4> specularLightingUAV;
+RWTexture2DArray<float3> diffuseLightingUAV;
+RWTexture2DArray<float4> specularLightingUAV;
 
 
 
@@ -149,14 +149,14 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     uint2 tileCoord    = (TILE_SIZE_FPTL * groupId) / GetTileSize();
-	uint2 pixelCoord = TexCoordStereoOffset(dispatchThreadId);// +uint2((unity_StereoEyeIndex * _ScreenSize.x), 0);
+	uint2 pixelCoord   = TexCoordStereoOffset(dispatchThreadId);// +uint2((unity_StereoEyeIndex * _ScreenSize.x), 0);
     uint  featureFlags = UINT_MAX;
 
 #endif
 
     // This need to stay in sync with deferred.shader
 
-    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord.xy).x;
+    float depth = SampleCameraDepth(pixelCoord.xy);
     PositionInputs posInput = GetPositionInput_Stereo(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord, unity_StereoEyeIndex);
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
@@ -182,13 +182,15 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
+    uint3 outCoord = uint3(pixelCoord, unity_StereoEyeIndex);
+
     if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
     {
-        specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
-        diffuseLightingUAV[pixelCoord]  = TagLightingForSSS(diffuseLighting);
+        specularLightingUAV[outCoord] = float4(specularLighting, 1.0);
+        diffuseLightingUAV[outCoord]  = TagLightingForSSS(diffuseLighting);
     }
     else
     {
-        specularLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+        specularLightingUAV[outCoord] = float4(diffuseLighting + specularLighting, 1.0);
     }
 }

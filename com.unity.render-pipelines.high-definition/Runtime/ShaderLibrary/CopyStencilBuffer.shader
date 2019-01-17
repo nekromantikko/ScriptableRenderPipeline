@@ -21,11 +21,11 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
     // Explicit binding not supported on PS4
 #if defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
     // Explicit binding is needed on D3D since we bind the UAV to slot 1 and we don't have a colour RT bound to fix a D3D warning.
-    RW_TEXTURE2D(float, _HTile) : register(u1); // DXGI_FORMAT_R8_UINT is not supported by Unity
-    RW_TEXTURE2D(float, _StencilBufferCopy) : register(u1); // DXGI_FORMAT_R8_UINT is not supported by Unity
+    RW_TEXTURE2D_ARRAY(float, _HTile) : register(u1); // DXGI_FORMAT_R8_UINT is not supported by Unity
+    RW_TEXTURE2D_ARRAY(float, _StencilBufferCopy) : register(u1); // DXGI_FORMAT_R8_UINT is not supported by Unity
 #else
-    RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
-    RW_TEXTURE2D(float, _StencilBufferCopy); // DXGI_FORMAT_R8_UINT is not supported by Unity
+    RW_TEXTURE2D_ARRAY(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
+    RW_TEXTURE2D_ARRAY(float, _StencilBufferCopy); // DXGI_FORMAT_R8_UINT is not supported by Unity
 #endif
         
     struct Attributes
@@ -141,7 +141,8 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
                 uint2 positionNDC = (uint2)input.positionCS.xy;
                 // There's no need for atomics as we are always writing the same value.
                 // Note: the GCN tile size is 8x8 pixels.
-                _HTile[positionNDC / 8] = _StencilRef;
+                uint3 coord = uint3(positionNDC / 8, unity_StereoEyeIndex);
+                _HTile[coord] = _StencilRef;
             }
 
             ENDHLSL
@@ -173,7 +174,8 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
                 [earlydepthstencil]
                 void Frag(Varyings input)// use SV_StencilRef in D3D 11.3+
                 {
-                    _StencilBufferCopy[(uint2)input.positionCS.xy] = PackByte(1);
+                    uint3 coord = uint3((uint2)input.positionCS.xy, unity_StereoEyeIndex);
+                    _StencilBufferCopy[coord] = PackByte(1);
                 }
 
                 ENDHLSL
@@ -203,7 +205,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
                 [earlydepthstencil]
                 void Frag(Varyings input) // use SV_StencilRef in D3D 11.3+
                 {
-                    uint2 dstPixCoord = (uint2)input.positionCS.xy;
+                    uint3 dstPixCoord = uint3((uint2)input.positionCS.xy, unity_StereoEyeIndex);
                     uint oldStencilVal = UnpackByte(_StencilBufferCopy[dstPixCoord]);
                     _StencilBufferCopy[dstPixCoord] = PackByte(oldStencilVal | _StencilRef);
                 }

@@ -24,22 +24,27 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
+        UNITY_SETUP_INSTANCE_ID(input);
         Varyings output;
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         return output;
     }
 
     float4 Frag(Varyings input) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
         float verticalGradient = viewDirWS.y * _GradientDiffusion;
         float topLerpFactor = saturate(-verticalGradient);

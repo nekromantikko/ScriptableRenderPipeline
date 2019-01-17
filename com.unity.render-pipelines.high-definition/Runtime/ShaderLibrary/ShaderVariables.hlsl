@@ -156,11 +156,11 @@ SAMPLER_CMP(s_linear_clamp_compare_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_ARRAY(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 // Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_ColorPyramidTexture);
+TEXTURE2D_ARRAY(_ColorPyramidTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -346,7 +346,7 @@ CBUFFER_END
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
 float SampleCameraDepth(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_LOD(_CameraDepthTexture, pixelCoords, 0).r;
+    return LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, pixelCoords, unity_StereoEyeIndex, 0).r;
 }
 
 float SampleCameraDepth(float2 uv)
@@ -354,9 +354,9 @@ float SampleCameraDepth(float2 uv)
     return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
-float3 SampleCameraColor(float2 uv, float lod)
+float4 SampleCameraColor(float2 uv, float lod)
 {
-    return SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, lod).rgb;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, unity_StereoEyeIndex, lod);
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

@@ -95,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Vector2.one * 0.5f,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: RenderTextureFormat.ARGBHalf,
+                    dimension: TextureDimension.Tex2DArray,
                     sRGB: false,
                     enableRandomWrite: true,
                     useMipMap: false,
