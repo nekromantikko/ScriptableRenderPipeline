@@ -116,13 +116,23 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 #endif
 }
 
-real3 NormalizeNormalPerPixel(real3 normal)
+real3 NormalizeNormalPerVertex(real3 normalWS)
 {
-#if !SHADER_HINT_NICE_QUALITY
-    // World normal is already normalized in vertex. Small acceptable error to save ALU.
-    return normal;
+#if !SHADER_HINT_NICE_QUALITY || !defined(_NORMALMAP)
+    // World normal is normalized in vertex. Small acceptable error to save ALU.
+    return normalize(normalWS);
 #else
-    return normalize(normal);
+    return normalWS;
+#endif
+}
+
+real3 NormalizeNormalPerPixel(real3 normalWS)
+{
+#if !SHADER_HINT_NICE_QUALITY || !defined(_NORMALMAP)
+    // World normal is already normalized in vertex. Small acceptable error to save ALU.
+    return normalWS;
+#else
+    return normalize(normalWS);
 #endif
 }
 
