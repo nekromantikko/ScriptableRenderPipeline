@@ -91,6 +91,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
+        {
+            if(enableHWDynamicRes != m_HardwareDynamicResRequested)
+            {
+                m_HardwareDynamicResRequested = enableHWDynamicRes;
+
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
+                {
+                    var rth = m_AutoSizedRTsArray[i];
+                    var rt = rth.m_RT;
+                    rt.useDynamicScale = m_HardwareDynamicResRequested && rth.m_EnableHWDynamicSize;
+                }
+            }
+        }
+
         public void SwitchResizeMode(RTHandle rth, ResizeMode mode)
         {
             // Don't do anything is scaling isn't enabled on this RT
@@ -257,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering
             float mipMapBias = 0f,
             MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
-            bool useDynamicScale = true,
+            bool useDynamicScale = false,
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
@@ -328,6 +343,7 @@ namespace UnityEngine.Experimental.Rendering
             newRT.useScaling = false;
             newRT.m_EnableRandomWrite = enableRandomWrite;
             newRT.m_EnableMSAA = enableMSAA;
+            newRT.m_EnableHWDynamicSize = useDynamicScale;
             newRT.m_Name = name;
 
             newRT.referenceSize = new Vector2Int(width, height);
@@ -355,7 +371,7 @@ namespace UnityEngine.Experimental.Rendering
             float mipMapBias = 0f,
             bool enableMSAA = false,
             bool bindTextureMS = false,
-            bool useDynamicScale = true,
+            bool useDynamicScale = false,
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
@@ -422,7 +438,7 @@ namespace UnityEngine.Experimental.Rendering
             float mipMapBias = 0f,
             bool enableMSAA = false,
             bool bindTextureMS = false,
-            bool useDynamicScale = true,
+            bool useDynamicScale = false,
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
@@ -564,6 +580,7 @@ namespace UnityEngine.Experimental.Rendering
             rth.m_EnableMSAA = enableMSAA;
             rth.m_EnableRandomWrite = enableRandomWrite;
             rth.useScaling = true;
+            rth.m_EnableHWDynamicSize = useDynamicScale;
             rth.m_Name = name;
             m_AutoSizedRTs.Add(rth);
             return rth;
