@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         FinalColorPyramid,
         // Raytracing
         LightCluster,
+        RaytracedAreaShadow,
         MaxLightingFullScreenDebug,
 
         // Rendering
@@ -302,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster);
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.RaytracedAreaShadow);
         }
 
         void RegisterDisplayStatsDebug()
@@ -726,8 +727,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 needsRefreshingCameraFreezeList = true;
             }
             
-            FrameSettings.RegisterDebug(name, additionalData.GetFrameSettings());
-            DebugManager.instance.RegisterData(additionalData);
+            var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
+            DebugManager.instance.RegisterData(history);
         }
 
         public static void UnRegisterCamera(Camera camera, HDAdditionalCameraData additionalData)
@@ -739,8 +740,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_CameraNames.RemoveAt(indexOfCamera);
                 needsRefreshingCameraFreezeList = true;
             }
-            FrameSettings.UnRegisterDebug(name);
-            DebugManager.instance.UnregisterData(additionalData);
+
+            DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
+            FrameSettingsHistory.UnRegisterDebug(camera);
         }
     }
 }

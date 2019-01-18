@@ -200,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_Combined2Tex);
             RTHandles.Release(m_Combined3Tex);
         }
-
+        
 #if ENABLE_RAYTRACING
         public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
@@ -209,34 +209,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 #endif
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.enableSSAO && settings.intensity.value > 0f;
+        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
             if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
-            {
-
-                if (!camera.frameSettings.enableSSAO) // Use filler texture if SRP settings have disabled SSAO
-                {
-                    // No AO applied - neutral is black, see the comment in the shaders
-                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, HDUtils.clearTexture2DArray);
-                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
-                    return;
-                }
-                else
-                {
-                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
-                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
-                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
-
-                    // TODO: All the push-debug stuff should be centralized somewhere
-                    (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
-                }
-            }
+                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
             else
 #endif
             {
@@ -274,7 +255,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Textures used for rendering
                 RTHandle depthMap, destination;
-                bool msaa = camera.frameSettings.enableMSAA;
+                bool msaa = camera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
                 if (msaa)
                 {
@@ -317,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // MSAA Resolve
-            if (camera.frameSettings.enableMSAA)
+            if (camera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 using (new ProfilingSample(cmd, "Resolve AO Buffer", CustomSamplerId.ResolveSSAO.GetSampler()))
                 {
