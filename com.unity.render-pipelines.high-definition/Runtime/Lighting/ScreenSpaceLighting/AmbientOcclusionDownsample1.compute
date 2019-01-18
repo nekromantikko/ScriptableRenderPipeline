@@ -28,21 +28,21 @@
 #pragma kernel KMain            MAIN=KMain
 #pragma kernel KMain_MSAA       MAIN=KMain_MSAA      MSAA
 
-TEXTURE2D(_Depth);
+TEXTURE2D_ARRAY(_Depth);
 
 #if MSAA
-RW_TEXTURE2D(float2, _LinearZ);
-RW_TEXTURE2D(float2, _DS2x);
+RW_TEXTURE2D_ARRAY(float2, _LinearZ);
+RW_TEXTURE2D_ARRAY(float2, _DS2x);
 RW_TEXTURE2D_ARRAY(float2, _DS2xAtlas);
-RW_TEXTURE2D(float2, _DS4x);
+RW_TEXTURE2D_ARRAY(float2, _DS4x);
 RW_TEXTURE2D_ARRAY(float2, _DS4xAtlas);
 
 groupshared float2 gs_cacheW[256];
 #else
-RW_TEXTURE2D(float, _LinearZ);
-RW_TEXTURE2D(float, _DS2x);
+RW_TEXTURE2D_ARRAY(float, _LinearZ);
+RW_TEXTURE2D_ARRAY(float, _DS2x);
 RW_TEXTURE2D_ARRAY(float, _DS2xAtlas);
-RW_TEXTURE2D(float, _DS4x);
+RW_TEXTURE2D_ARRAY(float, _DS4x);
 RW_TEXTURE2D_ARRAY(float, _DS4xAtlas);
 
 groupshared float gs_cacheW[256];
@@ -51,8 +51,9 @@ groupshared float gs_cacheW[256];
 #ifdef MSAA
 float2 Linearize(uint2 st)
 {
-    float depthMin = _Depth[st].y;
-    float depthMax = _Depth[st].x;
+    uint3 st3 = PIXEL_COORD3(st);
+    float depthMin = _Depth[st3].y;
+    float depthMax = _Depth[st3].x;
 
     float2 depth = float2(depthMin, depthMax);
     float2 dist = 1.0 / (_ZBufferParams.x * depth + _ZBufferParams.y);
@@ -63,20 +64,21 @@ float2 Linearize(uint2 st)
     if (depth.x == 1) dist.x = 1e5;
     if (depth.y == 1) dist.y = 1e5;
 #endif
-    _LinearZ[st] = dist;
+    _LinearZ[st3] = dist;
     return dist;
 }
 #else
 float Linearize(uint2 st)
 {
-    float depth = _Depth[st].x;
+    uint3 st3 = PIXEL_COORD3(st);
+    float depth = _Depth[st3].x;
     float dist = 1.0 / (_ZBufferParams.x * depth + _ZBufferParams.y);
 #ifdef UNITY_REVERSED_Z
     if (depth == 0) dist = 1e5;
 #else
     if (depth == 1) dist = 1e5;
 #endif
-    _LinearZ[st] = dist;
+    _LinearZ[st3] = dist;
     return dist;
 }
 #endif
@@ -102,15 +104,15 @@ void MAIN(uint2 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint2 GTid : SV_Group
 #endif
 
     uint2 st = DTid;
-    uint slice = ((st.x & 3) | (st.y << 2)) & 15;
-    _DS2x[st] = w1;
+    uint slice = ((st.x & 3) | (st.y << 2)) & 15; // XRTODO: handle indexing for eyes
+    _DS2x[PIXEL_COORD3(st)] = w1;
     _DS2xAtlas[uint3(st >> 2, slice)] = w1;
 
     if ((GI & 011) == 0)
     {
         st = DTid >> 1;
-        slice = ((st.x & 3) | (st.y << 2)) & 15;
-        _DS4x[st] = w1;
+        slice = ((st.x & 3) | (st.y << 2)) & 15; // XRTODO: handle indexing for eyes
+        _DS4x[PIXEL_COORD3(st)] = w1;
         _DS4xAtlas[uint3(st >> 2, slice)] = w1;
     }
 

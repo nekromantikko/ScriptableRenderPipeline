@@ -346,11 +346,15 @@ CBUFFER_END
 // Render textures allocated with the flag 'xrInstancing' used Texture2DArray where each slice is associated to an eye.
 // unity_StereoEyeIndex is used to select the eye in the current context.
 // XRTODO:should be functions? rename?
-#define PIXEL_COORD3(pixelCoord) uint3(pixelCoord, unity_StereoEyeIndex)
+#define PIXEL_COORD3(pixelCoord)                                        uint3(pixelCoord, unity_StereoEyeIndex)
 #define LOAD_TEXTURE2D_EYE(textureName, unCoord2)                       LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, unity_StereoEyeIndex)
 #define LOAD_TEXTURE2D_EYE_MSAA(textureName, unCoord2, sampleIndex)     LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, unity_StereoEyeIndex, sampleIndex)
 #define LOAD_TEXTURE2D_EYE_LOD(textureName, unCoord2, lod)              LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, unity_StereoEyeIndex, lod)
 #define SAMPLE_TEXTURE2D_EYE_LOD(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, unity_StereoEyeIndex, lod)
+
+#define GATHER_TEXTURE2D_EYE(textureName, samplerName, coord2)          GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, unity_StereoEyeIndex)
+#define GATHER_RED_TEXTURE2D_EYE(textureName, samplerName, coord2)      GATHER_RED_TEXTURE2D(textureName, samplerName, float3(coord2, unity_StereoEyeIndex))
+#define GATHER_GREEN_TEXTURE2D_EYE(textureName, samplerName, coord2)    GATHER_GREEN_TEXTURE2D(textureName, samplerName, float3(coord2, unity_StereoEyeIndex))
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
@@ -364,9 +368,9 @@ float SampleCameraDepth(float2 uv)
     return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
-float4 SampleCameraColor(uint2 pixelCoords)
+float3 SampleCameraColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_EYE_LOD(_ColorPyramidTexture, pixelCoords, 0);
+    return LOAD_TEXTURE2D_EYE_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
 }
 
 float3 SampleCameraColor(float2 uv)

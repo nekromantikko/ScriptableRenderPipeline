@@ -105,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 filterMode: FilterMode.Bilinear,
                 colorFormat: GraphicsFormat.R8_UNorm,
                 enableRandomWrite: true,
+                xrInstancing: true,
                 name: "Ambient Occlusion"
             );
 
@@ -114,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     filterMode: FilterMode.Bilinear,
                     colorFormat: GraphicsFormat.R8G8_UNorm,
                     enableRandomWrite: true,
+                    xrInstancing: true,
                     name: "Ambient Occlusion MSAA"
                 );
 
@@ -221,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!camera.frameSettings.enableSSAO) // Use filler texture if SRP settings have disabled SSAO
                 {
                     // No AO applied - neutral is black, see the comment in the shaders
-                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, HDUtils.clearTexture2DArray);
                     cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
                     return;
                 }
@@ -309,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!IsActive(camera, settings))
             {
                 // No AO applied - neutral is black, see the comment in the shaders
-                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, HDUtils.clearTexture2DArray);
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
                 return;
             }
@@ -344,6 +346,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
+                xrInstancing: true,
                 name: name
             );
         }
@@ -355,11 +358,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
-                slices: 16,
+                slices: 16, // XRTODO: multiply by eyeCount and handle indexing
                 autoGenerateMips: false,
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
+                xrInstancing: true,
                 name: name
             );
         }

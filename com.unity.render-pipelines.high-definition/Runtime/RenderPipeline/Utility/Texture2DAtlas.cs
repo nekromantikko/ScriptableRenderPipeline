@@ -137,17 +137,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Width = width;
             m_Height = height;
             m_Format = format;
-            m_AtlasTexture = RTHandles.Alloc(m_Width,
-                    m_Height,
-                    1,
-                    DepthBits.None,
-                    m_Format,
-                    FilterMode.Point,
-                    TextureWrapMode.Clamp,
-                    TextureDimension.Tex2D,
-                    false,
-                    true,
-                    false);
+            m_AtlasTexture = RTHandles.Alloc(
+                width: m_Width,
+                height: m_Height,
+                colorFormat: m_Format,
+                wrapMode: TextureWrapMode.Clamp,
+                useMipMap: true,
+                autoGenerateMips: false,
+                xrInstancing: true);
 
             m_AtlasAllocator = new AtlasAllocator(width, height);
         }

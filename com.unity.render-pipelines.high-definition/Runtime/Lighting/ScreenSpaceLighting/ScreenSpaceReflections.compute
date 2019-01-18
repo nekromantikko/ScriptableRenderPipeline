@@ -298,7 +298,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
     float2 velocityNDC;
-    DecodeVelocity(SAMPLE_TEXTURE2D_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0), velocityNDC);
+    DecodeVelocity(SAMPLE_TEXTURE2D_EYE_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0), velocityNDC);
     float2 prevFrameNDC = hitPositionNDC - velocityNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
@@ -319,7 +319,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     float  mipLevel = lerp(0, _SsrDepthPyramidMaxMip, roughness);
 
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
-    float3 color    = SampleCameraColor(prevFrameUV, mipLevel).rgb;
+    float3 color    = SAMPLE_TEXTURE2D_EYE_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
     float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
                     * RoughnessFade(roughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 

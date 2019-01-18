@@ -1,6 +1,5 @@
 using System;
 using UnityEditor;
-using UnityEngine.Assertions;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 using XRSettings = UnityEngine.XR.XRSettings;
@@ -135,7 +134,6 @@ namespace UnityEngine.Rendering
         {
             if (xrInstancing)
             {
-                Assert.AreEqual(dimension, TextureDimension.Tex2D);
                 dimension = TextureDimension.Tex2DArray;
             }
 

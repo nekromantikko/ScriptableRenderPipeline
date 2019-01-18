@@ -1665,7 +1665,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 #endif
 
     // Offset by half a texel to properly interpolate between this pixel and its mips
-    float3 preLD = SampleCameraColor(samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;
+    float3 preLD = SAMPLE_TEXTURE2D_EYE_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;
 
     // Inverse pre-exposure
     preLD *= GetInverseCurrentExposureMultiplier();
