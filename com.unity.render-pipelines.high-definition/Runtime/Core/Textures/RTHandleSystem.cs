@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -16,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Parameters for auto-scaled Render Textures
+        bool                m_HardwareDynamicResRequested = false;
         bool                m_ScaledRTSupportsMSAA = false;
         MSAASamples         m_ScaledRTCurrentMSAASamples = MSAASamples.None;
         HashSet<RTHandle>   m_AutoSizedRTs;
@@ -48,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering
 
             m_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
             m_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
+
+            m_HardwareDynamicResRequested = HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
         }
 
         public void Release(RTHandle rth)
@@ -280,7 +284,7 @@ namespace UnityEngine.Experimental.Rendering
                 mipMapBias = mipMapBias,
                 antiAliasing = (int)msaaSamples,
                 bindTextureMS = bindTextureMS,
-                useDynamicScale = useDynamicScale,
+                useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
                 name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
@@ -488,7 +492,7 @@ namespace UnityEngine.Experimental.Rendering
                 mipMapBias = mipMapBias,
                 antiAliasing = msaaSamples,
                 bindTextureMS = bindTextureMS,
-                useDynamicScale = useDynamicScale,
+                useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
                 name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
