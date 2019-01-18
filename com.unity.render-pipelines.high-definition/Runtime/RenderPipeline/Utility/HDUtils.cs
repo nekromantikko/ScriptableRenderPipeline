@@ -31,6 +31,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        static Texture2DArray m_ClearTexture2DArray;
+        public static Texture2DArray clearTexture2DArray
+        {
+            get
+            {
+                const int kMaxDepth = 2;
+                Debug.Assert(XRGraphics.eyeCount <= kMaxDepth);
+
+                if (m_ClearTexture2DArray == null)
+                {
+                    m_ClearTexture2DArray = new Texture2DArray(1, 1, kMaxDepth, TextureFormat.ARGB32, false) { name = "Clear Texture2DArray" };
+                    for (int i = 0; i < kMaxDepth; ++i)
+                        Graphics.CopyTexture(clearTexture, 0, 0, m_ClearTexture2DArray, i, 0);
+                }
+
+                return m_ClearTexture2DArray;
+            }
+        }
+
+        static Texture2DArray m_WhiteTexture2DArray;
+        public static Texture2DArray whiteTexture2DArray
+        {
+            get
+            {
+                const int kMaxDepth = 2;
+                Debug.Assert(XRGraphics.eyeCount <= kMaxDepth);
+
+                if (m_WhiteTexture2DArray == null)
+                {
+                    Color32[] pixels = new Color32[1];
+                    pixels[0] = Color.clear;
+
+                    m_WhiteTexture2DArray = new Texture2DArray(1, 1, kMaxDepth, TextureFormat.ARGB32, false) { name = "Clear Texture2DArray" };
+                    for (int i = 0; i < kMaxDepth; ++i)
+                    {
+                        m_WhiteTexture2DArray.SetPixels32(pixels, i);
+
+                    }
+
+                    m_WhiteTexture2DArray.Apply();
+                        //Graphics.CopyTexture(Texture2D.whiteTexture, 0, 0, m_WhiteTexture2DArray, i, 0);
+                }
+
+                return m_WhiteTexture2DArray;
+            }
+        }
+
         static Texture3D m_ClearTexture3D;
         public static Texture3D clearTexture3D
         {
@@ -575,7 +622,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
-        
+
         public static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
         {
             unsupportedGraphicDevice = GraphicsDeviceType.Null;

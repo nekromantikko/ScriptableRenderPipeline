@@ -41,11 +41,11 @@
 #endif
 
 #ifdef SSR_TRACE
-    TEXTURE2D(           _StencilTexture);
-    RW_TEXTURE2D(float2, _SsrHitPointTexture);
+       TEXTURE2D_ARRAY(        _StencilTexture);
+    RW_TEXTURE2D_ARRAY(float2, _SsrHitPointTexture);
 #else
-       TEXTURE2D(        _SsrHitPointTexture);
-    RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
+       TEXTURE2D_ARRAY(        _SsrHitPointTexture);
+    RW_TEXTURE2D_ARRAY(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
 
     StructuredBuffer<int2>  _SsrDepthPyramidMipLevelOffsets;
@@ -84,7 +84,7 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 {
 #ifdef SSR_USE_STENCIL
-    uint stencilVal = UnpackByte(LOAD_TEXTURE2D(_StencilTexture, positionSS).r);
+    uint stencilVal = UnpackByte(LOAD_TEXTURE2D_EYE(_StencilTexture, positionSS).r);
     bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
     // Skip SSR for unlit/sky materials as well (check with stencilVal == 0). 
     doesntReceiveSSR = doesntReceiveSSR || (stencilVal == 0);
@@ -268,7 +268,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-        _SsrHitPointTexture[positionSS] = hitPositionNDC;
+        _SsrHitPointTexture[PIXEL_COORD3(positionSS)] = hitPositionNDC;
     }
 
     // If we do not hit anything, 'rayPos.xy' provides an indication where we stopped the search.
@@ -287,7 +287,7 @@ float RoughnessFade(float roughness, float fadeRcpLength, float fadeEndTimesRcpL
 void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 {
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float2 hitPositionNDC = LOAD_TEXTURE2D(_SsrHitPointTexture, positionSS).xy;
+    float2 hitPositionNDC = LOAD_TEXTURE2D_EYE(_SsrHitPointTexture, positionSS).xy;
 
     if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
     {
@@ -328,7 +328,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     color /= prevExposure + (prevExposure == 0.0); // zero-div guard
 
     // Use premultiplied alpha.
-    _SsrLightingTextureRW[positionSS] = float4(color, 1) * opacity;
+    _SsrLightingTextureRW[PIXEL_COORD3(positionSS)] = float4(color, 1) * opacity;
 }
 
 #endif

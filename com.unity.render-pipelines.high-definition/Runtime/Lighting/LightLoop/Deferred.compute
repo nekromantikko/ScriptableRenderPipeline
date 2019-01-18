@@ -123,8 +123,8 @@ CBUFFER_END
 // variable declaration
 //-------------------------------------------------------------------------------------
 
-RWTexture2D<float3> diffuseLightingUAV;
-RWTexture2D<float4> specularLightingUAV;
+RWTexture2DArray<float3> diffuseLightingUAV;
+RWTexture2DArray<float4> specularLightingUAV;
 
 
 
@@ -149,7 +149,7 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     uint2 tileCoord    = (TILE_SIZE_FPTL * groupId) / GetTileSize();
-	uint2 pixelCoord = TexCoordStereoOffset(dispatchThreadId);// +uint2((unity_StereoEyeIndex * _ScreenSize.x), 0);
+    uint2 pixelCoord = TexCoordStereoOffset(dispatchThreadId);// +uint2((unity_StereoEyeIndex * _ScreenSize.x), 0);
     uint  featureFlags = UINT_MAX;
 
 #endif
@@ -182,13 +182,15 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
+    uint3 pixelCoord3 = PIXEL_COORD3(pixelCoord);
+
     if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
     {
-        specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
-        diffuseLightingUAV[pixelCoord]  = TagLightingForSSS(diffuseLighting);
+        specularLightingUAV[pixelCoord3] = float4(specularLighting, 1.0);
+        diffuseLightingUAV[pixelCoord3]  = TagLightingForSSS(diffuseLighting);
     }
     else
     {
-        specularLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+        specularLightingUAV[pixelCoord3] = float4(diffuseLighting + specularLighting, 1.0);
     }
 }

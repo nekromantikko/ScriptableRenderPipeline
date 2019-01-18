@@ -123,6 +123,14 @@ namespace UnityEngine.Rendering
             return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
         }
 
+        public static uint eyeCount
+        {
+            get
+            {
+                return enabled ? 2u : 1u;
+            }
+        }
+
         public static VRTextureUsage OverrideRenderTargetDesc(bool xrInstancing, ref TextureDimension dimension)
         {
             if (xrInstancing)

@@ -7,5 +7,5 @@
     // Ambient occlusion texture
     TEXTURE2D(_AmbientOcclusionTexture);
     TEXTURE2D(_CameraMotionVectorsTexture);
-    TEXTURE2D(_SsrLightingTexture);
+    TEXTURE2D_ARRAY(_SsrLightingTexture);
 #endif

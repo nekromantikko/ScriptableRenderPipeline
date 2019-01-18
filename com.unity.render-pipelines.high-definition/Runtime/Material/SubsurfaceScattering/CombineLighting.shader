@@ -32,8 +32,9 @@ Shader "Hidden/HDRP/CombineLighting"
             #pragma fragment Frag
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-            TEXTURE2D(_IrradianceSource);
+            TEXTURE2D_ARRAY(_IrradianceSource);
 
             struct Attributes
             {
@@ -54,7 +55,7 @@ Shader "Hidden/HDRP/CombineLighting"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                return LOAD_TEXTURE2D(_IrradianceSource, input.positionCS.xy);
+                return LOAD_TEXTURE2D_EYE(_IrradianceSource, input.positionCS.xy);
             }
             ENDHLSL
         }

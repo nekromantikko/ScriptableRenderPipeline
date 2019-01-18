@@ -6,18 +6,19 @@
 
 StructuredBuffer<DecalData> _DecalDatas;
 
+// TODO: never bound??
 TEXTURE2D_ARRAY(_DecalAtlas);
 SAMPLER(sampler_DecalAtlas);
 
-TEXTURE2D(_DecalAtlas2D);
+TEXTURE2D_ARRAY(_DecalAtlas2D);
 SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
 #if defined(PLATFORM_NEEDS_UNORM_UAV_SPECIFIER)
-RW_TEXTURE2D(unorm float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
+RW_TEXTURE2D_ARRAY(unorm float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
 #else
-RW_TEXTURE2D(float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
+RW_TEXTURE2D_ARRAY(float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
 #endif
-TEXTURE2D(_DecalHTileTexture);
+TEXTURE2D_ARRAY(_DecalHTileTexture);
 
 UNITY_INSTANCING_BUFFER_START(Decal)
     UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)
