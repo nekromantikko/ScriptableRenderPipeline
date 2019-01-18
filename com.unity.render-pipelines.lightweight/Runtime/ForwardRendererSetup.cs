@@ -187,12 +187,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
                 renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
             }
-            else
-            {
-                // We have to set antiAliasing settings as this is the only way to enable/disable MSAA for backbuffer
-                // We save/restore this settings per-camera in RenderSingleCamera.
-                QualitySettings.antiAliasing = renderingData.cameraData.msaaSamples;   
-            }
 
             foreach (var pass in m_BeforeRenderPasses)
                 renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle, clearFlag));
