@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - We’ve redesigned the Shader GUI. For example, all property names in Shaders are now inline across the board
 - The Simple Lit Shader now has Smoothness, which can be stored in the alpha of specular or albedo maps.
 - The Simple Lit and Particles Simple Lit Shaders now take shininess from the length (brightness) of the specular map.
-- The __Double sided__ property is now __Render Face__. This means you can also do frontface culling.
+- The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
 - Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
 
 
