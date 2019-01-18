@@ -42,6 +42,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ++indentLevel;
+            ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
+            {
+                Enum defaultValue;
+                switch (m_Node.surfaceType)
+                {
+                    case SurfaceType.Opaque:
+                        defaultValue = HDRenderQueue.OpaqueRenderQueue.Default;
+                        break;
+                    case SurfaceType.Transparent:
+                        defaultValue = HDRenderQueue.TransparentRenderQueue.Default;
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown SurfaceType");
+                }
+                row.Add(new EnumField(defaultValue), (field) =>
+                {
+                    switch (m_Node.surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            //GetOpaqueEquivalent: prevent issue when switching surface type
+                            field.value = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(m_Node.renderingPass));
+                            break;
+                        case SurfaceType.Transparent:
+                            //GetTransparentEquivalent: prevent issue when switching surface type
+                            field.value = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass));
+                            break;
+                        default:
+                            throw new ArgumentException("Unknown SurfaceType");
+                    }
+                    field.RegisterValueChangedCallback(ChangeRenderingPass);
+                });
+            });
+            --indentLevel;
+
             if (m_Node.surfaceType == SurfaceType.Transparent)
             {
                 ++indentLevel;
@@ -152,6 +187,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
             m_Node.surfaceType = (SurfaceType)evt.newValue;
+
+            UpdateRenderingPassValue((int)m_Node.renderingPass);
         }
 
         void ChangeDoubleSided(ChangeEvent<bool> evt)
@@ -181,6 +218,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.transparencyFog;
             td.isOn = evt.newValue;
             m_Node.transparencyFog = td;
+        }
+            
+        void ChangeRenderingPass(ChangeEvent<Enum> evt)
+        {
+            UpdateRenderingPassValue(Convert.ToInt32(evt.newValue));
+        }
+
+        void UpdateRenderingPassValue(int newValue)
+        {
+            HDRenderQueue.RenderQueueType renderingPass;
+            switch (m_Node.surfaceType)
+            {
+                case SurfaceType.Opaque:
+                    renderingPass = HDRenderQueue.ConvertFromOpaqueRenderQueue((HDRenderQueue.OpaqueRenderQueue)newValue);
+                    break;
+                case SurfaceType.Transparent:
+                    renderingPass = HDRenderQueue.ConvertFromTransparentRenderQueue((HDRenderQueue.TransparentRenderQueue)newValue);
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+
+            if (Equals(m_Node.renderingPass, renderingPass))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Rendering Pass Change");
+            m_Node.renderingPass = renderingPass;
         }
 
         void ChangeDrawBeforeRefraction(ChangeEvent<bool> evt)
