@@ -81,7 +81,7 @@ namespace UnityEditor
             public static readonly GUIContent fixNormalNow = new GUIContent("Fix now",
                 "Converts the assigned texture to be a normal map format.");
             
-            public static readonly GUIContent queueSlider = new GUIContent("Queue Offset", "This slider controls the offset in the render queue, use this for fine tuning render order.");
+            public static readonly GUIContent queueSlider = new GUIContent("Sorting Priority", "This slider controls the offset in the render queue, use this for fine tuning render order.");
         }
 
         #endregion
@@ -273,26 +273,28 @@ namespace UnityEditor
 
         public virtual void DrawSurfaceInputs(Material material)
         {
-            DrawBaseProperties();
+            DrawBaseProperties(material);
         }
 
         public virtual void DrawAdvancedOptions(Material material)
         {
             materialEditor.EnableInstancingField();
 
-/*            if (queueOffsetProp != null)
+            if (queueOffsetProp != null)
             {
                 queueOffsetProp.floatValue = EditorGUILayout.IntSlider(Styles.queueSlider, (int)queueOffsetProp.floatValue, -queueOffsetRange, queueOffsetRange);
-            }*/
+            }
         }
 
         public virtual void DrawAdditionalFoldouts(Material material){}
 
-        public virtual void DrawBaseProperties()
+        public virtual void DrawBaseProperties(Material material)
         {
             if (baseMapProp != null && baseColorProp != null) // Draw the baseMap, most shader will have at least a baseMap
             {
                 materialEditor.TexturePropertySingleLine(Styles.baseMap, baseMapProp, baseColorProp);
+                if(material.HasProperty("_MainTex"))
+                    material.SetTexture("_MainTex", baseMapProp.textureValue); // Temporary fix for lightmapping, to be replaced with attribute tag.
             }
         }
 
@@ -405,8 +407,8 @@ namespace UnityEditor
             }
 
             var queueOffset = 0; // queueOffsetRange;
-            //if(material.HasProperty("_QueueOffset"))
-            //    queueOffset = queueOffsetRange - (int) material.GetFloat("_QueueOffset");
+            if(material.HasProperty("_QueueOffset"))
+                queueOffset = queueOffsetRange - (int) material.GetFloat("_QueueOffset");
 
             SurfaceType surfaceType = (SurfaceType)material.GetFloat("_Surface");
             if (surfaceType == SurfaceType.Opaque)
