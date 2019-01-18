@@ -1905,7 +1905,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var dynResHandler = HDDynamicResolutionHandler.instance;
             float dynamicResScale = dynResHandler.GetCurrentScale();
-            bool dynamicResIsOn = dynResHandler.IsSoftware() && dynamicResScale != 1.0f;
+            bool dynamicResIsOn = dynResHandler.SoftwareDynamicResIsEnabled();
             if (dynamicResIsOn)
             {
                 switch(dynResHandler.filter)

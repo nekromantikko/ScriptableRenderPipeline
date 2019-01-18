@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class HDDynamicResolutionHandler
     {
+        private bool  m_Enabled = false;
         private float m_MinScreenFraction = 1.0f;
         private float m_MaxScreenFraction = 1.0f;
         private float m_CurrentFraction = 1.0f;
@@ -56,19 +57,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
-            type = settings.dynResType;
-            float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
-            m_MinScreenFraction = minScreenFrac;
-            float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
-            m_MaxScreenFraction = maxScreenFrac;
-
-            filter = settings.upsampleFilter;
-            m_ForcingRes = settings.forceResolution;
-
-            if (m_ForcingRes)
+            m_Enabled = settings.enabled;
+            if (!m_Enabled)
             {
-                float fraction = Mathf.Clamp(settings.forcedPercentage / 100.0f, 0.1f, 1.5f);
-                m_CurrentFraction = fraction;
+                m_CurrentFraction = 1.0f;
+            }
+            else
+            {
+                type = settings.dynResType;
+                float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
+                m_MinScreenFraction = minScreenFrac;
+                float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
+                m_MaxScreenFraction = maxScreenFrac;
+
+                filter = settings.upsampleFilter;
+                m_ForcingRes = settings.forceResolution;
+
+                if (m_ForcingRes)
+                {
+                    float fraction = Mathf.Clamp(settings.forcedPercentage / 100.0f, 0.1f, 1.5f);
+                    m_CurrentFraction = fraction;
+                }
             }
         }
 
@@ -107,14 +116,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public bool IsSoftware()
+        public bool SoftwareDynamicResIsEnabled()
         {
-            return type == DynamicResolutionType.Software;
+            return m_Enabled && m_CurrentFraction != 1.0f && type == DynamicResolutionType.Software;
         }
+        public bool HardwareDynamicResIsEnabled()
+        {
+            return m_Enabled && type == DynamicResolutionType.Hardware;
+        }
+
+
         public Vector2Int GetRTHandleScale(Vector2Int size)
         {
-
-            if(type == DynamicResolutionType.Hardware)
+            if(!m_Enabled && type == DynamicResolutionType.Hardware)
             {
                 return size;
             }
@@ -133,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float GetCurrentScale()
         {
-            return m_CurrentFraction;
+            return m_Enabled ? m_CurrentFraction : 1.0f;
         }
 
     }

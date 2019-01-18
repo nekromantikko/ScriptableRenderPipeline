@@ -5,16 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     /// ----------- ENUMS -----------
 
-    // Dynamic resolution type:
-    //  - Software
-    //  - HW
-    //  - Temporal Upscale
-
-    // Upsampling filters
-    //   - Bilinear (Fastest)
-    //   - Catmull Rom 
-    //   - ? 
-
     public enum DynamicResolutionType : byte
     {
         Software,
@@ -33,6 +23,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class GlobalDynamicResolutionSettings
     {
+        [SerializeField]
+        public bool enabled = false;
+
         [SerializeField]
         public float maxPercentage = 100.0f;
 

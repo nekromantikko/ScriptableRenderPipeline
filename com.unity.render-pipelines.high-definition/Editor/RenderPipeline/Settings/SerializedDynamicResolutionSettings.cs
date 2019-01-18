@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public SerializedProperty root;
 
+        public SerializedProperty enabled;
         public SerializedProperty maxPercentage;
         public SerializedProperty minPercentage;
         public SerializedProperty dynamicResType;
@@ -18,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             this.root = root;
 
+            enabled                  = root.Find((GlobalDynamicResolutionSettings s) => s.enabled);
             maxPercentage            = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);
             minPercentage            = root.Find((GlobalDynamicResolutionSettings s) => s.minPercentage);
             dynamicResType           = root.Find((GlobalDynamicResolutionSettings s) => s.dynResType);
