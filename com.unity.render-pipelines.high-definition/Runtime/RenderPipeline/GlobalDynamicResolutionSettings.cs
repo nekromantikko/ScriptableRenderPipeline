@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum DynamicResolutionType : byte
     {
         Software,
-        //Hardware,   // Not yet supported
+        Hardware,   // Not yet supported
         //Temporal    // Not yet supported
     }
 
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         Bilinear,
         CatmullRom,
-        // Lanczos? 
+        Lanczos, 
         // Different of Gaussians? [aka unsharp]
     }
 

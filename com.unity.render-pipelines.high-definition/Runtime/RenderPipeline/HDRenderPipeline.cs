@@ -906,6 +906,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (camera == null)
                         continue;
 
+                    camera.allowDynamicResolution = true;
                     // TODO: Very weird callbacks
                     //  They are called at the beginning of a camera render, but the very same camera may not end its rendering
                     //  for various reasons (full screen pass through, custom render, or just invalid parameters)

@@ -8,7 +8,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile _ FXAA
         #pragma multi_compile _ GRAIN
 
-        #pragma multi_compile NO_UPSCALE BILINEAR CATMULL_ROM_4
+        #pragma multi_compile NO_UPSCALE BILINEAR CATMULL_ROM_4 LANCZOS
 
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -59,6 +59,8 @@ Shader "Hidden/HDRP/FinalPass"
             return Bilinear(_InputTexture, UV);
         #elif CATMULL_ROM_4
             return CatmullRomFourSamples(_InputTexture, UV);
+        #elif LANCZOS
+            return Lanczos(_InputTexture, UV);
         #else
             return Bilinear(_InputTexture, UV);
         #endif

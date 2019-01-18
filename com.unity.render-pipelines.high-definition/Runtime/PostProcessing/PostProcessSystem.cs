@@ -1905,7 +1905,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var dynResHandler = HDDynamicResolutionHandler.instance;
             float dynamicResScale = dynResHandler.GetCurrentScale();
-            bool dynamicResIsOn = dynamicResScale != 1.0f;
+            bool dynamicResIsOn = dynResHandler.IsSoftware() && dynamicResScale != 1.0f;
             if (dynamicResIsOn)
             {
                 switch(dynResHandler.filter)
@@ -1916,11 +1916,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case DynamicResUpscaleFilter.CatmullRom:
                         m_FinalPassMaterial.EnableKeyword("CATMULL_ROM_4");
                         break;
-                    //case HDDynamicResolutionHandler.UpscaleFilter.Lanczos:
-                    //    m_FinalPassMaterial.EnableKeyword("LANCZOS");
-                    //    break;
-
+                    case DynamicResUpscaleFilter.Lanczos:
+                        m_FinalPassMaterial.EnableKeyword("LANCZOS");
+                        break;
                 }
+            }
+            else
+            {
+                m_FinalPassMaterial.EnableKeyword("NO_UPSCALE");
             }
 
             if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn)

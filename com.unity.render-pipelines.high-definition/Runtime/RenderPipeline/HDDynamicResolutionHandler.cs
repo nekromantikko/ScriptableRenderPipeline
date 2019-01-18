@@ -34,10 +34,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DynamicResUpscaleFilter filter { get; set; }
 
 
+        private DynamicResolutionType type;
+
         private PerformDynamicRes m_DynamicResMethod = null;
+        private static HDDynamicResolutionHandler s_Instance = new HDDynamicResolutionHandler();
+        public static HDDynamicResolutionHandler instance { get { return s_Instance; } }
 
-        private static HDDynamicResolutionHandler s_Instance = null;
 
+        private HDDynamicResolutionHandler()
+        {
+            m_DynamicResMethod = DefaultDynamicResMethod;
+            filter = DynamicResUpscaleFilter.Bilinear;
+
+        }
 
         // TODO: Eventually we will need to provide a good default implementation for this. 
         static public float DefaultDynamicResMethod()
@@ -45,23 +54,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 1.0f;
         }
 
-        static public HDDynamicResolutionHandler instance
-        {
-            get
-            {
-                if(s_Instance == null)
-                {
-                    s_Instance = new HDDynamicResolutionHandler();
-                    s_Instance.SetDynamicResScaler(DefaultDynamicResMethod);
-                    s_Instance.filter = DynamicResUpscaleFilter.Bilinear;
-                }
-
-                return s_Instance;
-            }
-        }
-
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
+            type = settings.dynResType;
             float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
             m_MinScreenFraction = minScreenFrac;
             float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
@@ -72,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_ForcingRes)
             {
-                float fraction = Mathf.Clamp(settings.forcedPercentage / 100.0f, 0.1f, 1.0f);
+                float fraction = Mathf.Clamp(settings.forcedPercentage / 100.0f, 0.1f, 1.5f);
                 m_CurrentFraction = fraction;
             }
         }
@@ -86,6 +81,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Update(GlobalDynamicResolutionSettings settings, Action OnResolutionChange = null)
         {
             ProcessSettings(settings);
+
+
             if (!m_ForcingRes)
             {
                 float currLerp = m_DynamicResMethod();
@@ -103,10 +100,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 hasSwitchedResolution = false;
             }
+
+            if (settings.dynResType == DynamicResolutionType.Hardware)
+            {
+                ScalableBufferManager.ResizeBuffers(m_CurrentFraction, m_CurrentFraction);
+            }
         }
 
+        public bool IsSoftware()
+        {
+            return type == DynamicResolutionType.Software;
+        }
         public Vector2Int GetRTHandleScale(Vector2Int size)
         {
+
+            if(type == DynamicResolutionType.Hardware)
+            {
+                return size;
+            }
+
             cachedOriginalSize = size;
             Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * m_CurrentFraction), Mathf.CeilToInt(size.y * m_CurrentFraction));
             scaledSize.x += (1 & scaledSize.x);

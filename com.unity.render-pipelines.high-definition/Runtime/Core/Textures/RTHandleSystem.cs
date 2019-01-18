@@ -253,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering
             float mipMapBias = 0f,
             MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
-            bool useDynamicScale = false,
+            bool useDynamicScale = true,
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering
             float mipMapBias = 0f,
             bool enableMSAA = false,
             bool bindTextureMS = false,
-            bool useDynamicScale = false,
+            bool useDynamicScale = true,
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
@@ -387,7 +387,7 @@ namespace UnityEngine.Experimental.Rendering
             float mipMapBias = 0f,
             bool enableMSAA = false,
             bool bindTextureMS = false,
-            bool useDynamicScale = false,
+            bool useDynamicScale = true,
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
