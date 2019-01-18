@@ -8,12 +8,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
 - You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+- Baked Lit Shader, which uses global illumination via Light Probes and lightmaps, but no real-time lighting. 
+- Distortion support in all Particle Shaders.
+- An upgrade system for LWRP Materials with `MaterialPostprocessor`.
+- An upgrade path for Unlit shaders
+- Tooltips for Shaders.
+- SRP Batcher support for Particle Shaders.
+- Docs for these Shaders: Baked Lit, Particles Lit, Particles Simple Lit, and Particles Unlit.
+
 
 ### Changed
 - You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
 - LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
 - LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
 - Removed `IAfterDepthPrePass` interface.
+- We’ve redesigned the Shader GUI. For example, all property names in Shaders are now inline across the board
+- The Simple Lit Shader now has Smoothness, which can be stored in the alpha of specular or albedo maps.
+- The Simple Lit and Particles Simple Lit Shaders now take shininess from the length (brightness) of the specular map.
+- The __Double sided__ property is now __Render Face__. This means you can also do frontface culling.
+- Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
+
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -27,6 +41,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Framedebugger now renders correctly when stepping through drawcalls.
 - Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
 - Fixed rendering in the gamma color space, so it doesn't appear darker.
+- Particles SImple Lit and Particles Unlit Shaders now work correctly.
+- _Soft Particles__ now work correctly.
+- Camera fading for particles.
+- Fixed a typo in the Unlit `IgnoreProjector` tag.
+- Particles render in both eyes with stereo instancing
+
 
 ## [5.2.0] - 2018-11-27
 ### Added
